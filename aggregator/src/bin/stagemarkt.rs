@@ -1,7 +1,6 @@
 use anyhow::Result;
 use ::scrapers::{Config, Database, load_dotenv};
 use ::scrapers::scrapers;
-use std::env;
 
 #[tokio::main]
 async fn main() -> Result<()> {

@@ -11,6 +11,7 @@ use crate::scrapers::{empty_array, empty_object, get_f64, get_string, join_locat
 const BASE_URL: &str = "https://api.nationalevacaturebank.nl/api/jobs/v3/sites/nationalevacaturebank.nl/jobs";
 const DETAIL_URL_TEMPLATE: &str = "https://www.nationalevacaturebank.nl/vacature/{listing_id}/{slug}";
 const DEFAULT_LIMIT: i32 = 9999;
+const PAGE_LIMIT: i32 = 100;
 
 pub async fn run(db: Database, config: Config) -> Result<()> {
     run_inner(db, config).await
@@ -68,10 +69,8 @@ async fn run_inner(db: Database, config: Config) -> Result<()> {
             total_listings += 1;
         }
         tracing::info!("nvb page {} done: listings {}", page, jobs.len());
-        if let Some(max_pages) = config.nvb_max_pages {
-            if page >= max_pages {
-                break;
-            }
+        if page >= PAGE_LIMIT {
+            break;
         }
         let total_pages = data.get("pages").and_then(|v| v.as_i64()).unwrap_or(0);
         if total_pages > 0 && page >= total_pages as i32 {

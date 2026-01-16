@@ -9,8 +9,8 @@ pub use db::Database;
 
 pub fn load_dotenv() -> Result<(), dotenv::Error> {
     if let Ok(path) = std::env::var("DOTENV_PATH") {
-        dotenv::from_filename(path)
+        dotenv::from_filename(path).map(|_| ())
     } else {
-        dotenv::dotenv()
+        dotenv::dotenv().map(|_| ())
     }
 }

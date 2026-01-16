@@ -11,7 +11,6 @@ pub struct Config {
     pub scraper_max_workers: usize,
     #[serde(default)]
     pub proxy: Option<String>,
-    pub nvb_max_pages: Option<i32>,
 }
 
 impl Config {
@@ -27,10 +26,6 @@ impl Config {
                 .and_then(|v| v.parse::<usize>().ok())
                 .unwrap_or_else(default_scraper_max_workers),
             proxy: get_env_optional("SCRAPER_PROXY"),
-            nvb_max_pages: get_env_optional("NVB_MAX_PAGES")
-                .as_deref()
-                .and_then(|v| v.parse::<i32>().ok())
-                .or_else(default_nvb_max_pages),
         };
         if matches!(cfg.proxy.as_deref(), Some("")) {
             cfg.proxy = None;
@@ -47,9 +42,6 @@ fn default_scraper_max_workers() -> usize {
     200
 }
 
-fn default_nvb_max_pages() -> Option<i32> {
-    None
-}
 
 fn get_env_required(key: &str) -> Result<String> {
     let value = env::var(key).map_err(|_| anyhow::anyhow!("missing required env var: {}", key))?;
