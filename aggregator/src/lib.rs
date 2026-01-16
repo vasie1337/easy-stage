@@ -6,3 +6,11 @@ pub mod scrapers;
 
 pub use config::Config;
 pub use db::Database;
+
+pub fn load_dotenv() -> Result<(), dotenv::Error> {
+    if let Ok(path) = std::env::var("DOTENV_PATH") {
+        dotenv::from_filename(path)
+    } else {
+        dotenv::dotenv()
+    }
+}

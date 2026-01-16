@@ -10,6 +10,7 @@ use crate::scrapers::{empty_array, empty_object, get_f64, get_string, join_locat
 
 const BASE_URL: &str = "https://api.nationalevacaturebank.nl/api/jobs/v3/sites/nationalevacaturebank.nl/jobs";
 const DETAIL_URL_TEMPLATE: &str = "https://www.nationalevacaturebank.nl/vacature/{listing_id}/{slug}";
+const DEFAULT_LIMIT: i32 = 9999;
 
 pub async fn run(db: Database, config: Config) -> Result<()> {
     run_inner(db, config).await
@@ -20,7 +21,7 @@ async fn run_inner(db: Database, config: Config) -> Result<()> {
     let mut headers = HeaderMap::new();
     headers.insert(ORIGIN, HeaderValue::from_static("https://www.nationalevacaturebank.nl"));
     headers.insert(REFERER, HeaderValue::from_static("https://www.nationalevacaturebank.nl/"));
-    let client = http::build_client_with_headers(config.proxy_nvb.as_deref(), headers)?;
+    let client = http::build_client_with_headers(config.proxy.as_deref(), headers)?;
 
     let mut page = 1;
     let mut total_listings = 0usize;
@@ -29,7 +30,7 @@ async fn run_inner(db: Database, config: Config) -> Result<()> {
         tracing::info!("nvb fetching page {}", page);
         let params = vec![
             ("page", page.to_string()),
-            ("limit", config.nvb_limit.to_string()),
+            ("limit", DEFAULT_LIMIT.to_string()),
             ("filters", "contractType:Stage".to_string()),
         ];
         let data = match http::get_json_with_retries(&client, BASE_URL, &params, 5).await {

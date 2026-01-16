@@ -1,9 +1,0 @@
-database_url = "postgresql://scrapers:scrapers@postgres:5432/scrapers"
-db_max_connections = 50
-stagemarkt_max_workers = 200
-stagemarkt_location = "Utrecht"
-stagemarkt_niveaus = [4]
-nvb_limit = 9999
-nvb_max_workers = 200
-proxy_nvb = "http://user-vasie_dDUVn:UG_d8SkA8NYGll@ddc.oxylabs.io:8001"
-proxy_stagemarkt = "http://user-vasie_dDUVn:UG_d8SkA8NYGll@ddc.oxylabs.io:8001"

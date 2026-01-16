@@ -15,6 +15,8 @@ use crate::scrapers::{empty_array, empty_object, get_f64, get_i32, get_string, j
 
 const BASE_URL: &str = "https://stagemarkt.nl/api/query-hub";
 const SITE_ID: &str = "STAGEMARKT";
+const DEFAULT_LOCATION: &str = "Utrecht";
+const DEFAULT_NIVEAUS: &[i32] = &[4];
 
 pub async fn run(db: Database, config: Config) -> Result<()> {
     run_inner(db, config).await
@@ -22,12 +24,12 @@ pub async fn run(db: Database, config: Config) -> Result<()> {
 
 async fn run_inner(db: Database, config: Config) -> Result<()> {
     tracing::info!("stagemarkt start");
-    let client = http::build_client(config.proxy_stagemarkt.as_deref())?;
+    let client = http::build_client(config.proxy.as_deref())?;
     let mut seen = HashSet::new();
     let mut total_companies = 0usize;
     let mut total_listings = 0usize;
     let start_total = Instant::now();
-    for niveau in config.stagemarkt_niveaus.iter() {
+    for niveau in DEFAULT_NIVEAUS.iter() {
         let start_niveau = Instant::now();
         tracing::info!("stagemarkt niveau {}", niveau);
         let opleidingen = get_opleidingen(&client, *niveau).await?;
@@ -39,12 +41,11 @@ async fn run_inner(db: Database, config: Config) -> Result<()> {
             .iter()
             .filter_map(|v| v.get("creboCode").and_then(|c| c.as_i64()))
             .collect();
-        let search_workers = config.stagemarkt_max_workers.min(100);
+        let search_workers = config.scraper_max_workers.min(100);
         let search_results: Vec<Vec<Value>> = stream::iter(crebo_codes)
             .map(|code| {
                 let client = client.clone();
-                let location = config.stagemarkt_location.clone();
-                async move { search_internships(&client, code, *niveau, &location).await }
+                async move { search_internships(&client, code, *niveau, DEFAULT_LOCATION).await }
             })
             .buffer_unordered(search_workers)
             .filter_map(|r| async move { r.ok() })
@@ -67,7 +68,7 @@ async fn run_inner(db: Database, config: Config) -> Result<()> {
         let total_niveau = new_ids.len();
         let processed = Arc::new(AtomicUsize::new(0));
         let errors = Arc::new(AtomicUsize::new(0));
-        let semaphore = Arc::new(Semaphore::new(config.stagemarkt_max_workers));
+        let semaphore = Arc::new(Semaphore::new(config.scraper_max_workers));
         let db_clone = db.clone();
         let client_clone = client.clone();
         let niveau_val = *niveau;
@@ -121,7 +122,7 @@ async fn run_inner(db: Database, config: Config) -> Result<()> {
                     Ok::<(), anyhow::Error>(())
                 }
             })
-            .buffer_unordered(config.stagemarkt_max_workers)
+            .buffer_unordered(config.scraper_max_workers)
             .collect::<Vec<_>>()
             .await;
         

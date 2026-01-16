@@ -1,8 +1,8 @@
-# Run scrapers daily at 3:00 AM
-# 0 3 * * * /usr/local/bin/scrapers /app/config.toml >> /var/log/scrapers.log 2>&1
+# Scrapers
+# Run daily at 3:00 AM
+# 0 3 * * * /usr/local/bin/scrapers >> /var/log/scrapers.log 2>&1
 
-# Or run hourly (uncomment to use):
-0 * * * * /usr/local/bin/scrapers /app/config.toml >> /var/log/scrapers.log 2>&1
+# Run hourly
+0 * * * * /usr/local/bin/scrapers >> /var/log/scrapers.log 2>&1
 
-# Or run every 6 hours:
-# 0 */6 * * * /usr/local/bin/scrapers /app/config.toml >> /var/log/scrapers.log 2>&1
+# Add more jobs below (email, matching, etc.)
