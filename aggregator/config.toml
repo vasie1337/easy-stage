@@ -1,0 +1,7 @@
+database_url = "postgresql://scrapers:scrapers@localhost:5432/scrapers"
+db_max_connections = 50
+stagemarkt_max_workers = 200
+stagemarkt_location = "Utrecht"
+stagemarkt_niveaus = [4]
+nvb_limit = 9999
+nvb_max_workers = 200
