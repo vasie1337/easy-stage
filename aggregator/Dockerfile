@@ -11,12 +11,9 @@ COPY aggregator/src ./aggregator/src
 RUN cd aggregator && touch src/lib.rs src/main.rs src/bin/*.rs && cargo build --release
 
 FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/* \
-    && curl -fsSL https://github.com/aptible/supercronic/releases/download/v0.2.33/supercronic-linux-amd64 -o /usr/local/bin/supercronic \
-    && chmod +x /usr/local/bin/supercronic
-COPY aggregator/crontab /app/aggregator/crontab
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/aggregator/target/release/scrapers /usr/local/bin/scrapers
 COPY --from=builder /app/aggregator/target/release/nvb /usr/local/bin/nvb
 COPY --from=builder /app/aggregator/target/release/stagemarkt /usr/local/bin/stagemarkt
 ENV RUST_LOG=info
-CMD ["/usr/local/bin/supercronic", "/app/aggregator/crontab"]
+CMD ["/usr/local/bin/scrapers"]
