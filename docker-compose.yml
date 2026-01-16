@@ -24,7 +24,7 @@ services:
   aggregator:
     build:
       context: .
-      dockerfile: aggregator/Dockerfile
+      dockerfile: apps/aggregator/Dockerfile
     container_name: easy-mono-aggregator
     environment:
       DATABASE_URL: postgresql://scrapers:scrapers@postgres:5432/scrapers
