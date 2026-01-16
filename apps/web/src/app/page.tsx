@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AuthActions } from "@/components/auth/auth-actions";
 
@@ -45,7 +46,9 @@ export default async function Home() {
             Save your preferences and get new internship alerts by email.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button>Set up profile</Button>
+            <Button asChild>
+              <Link href="/profile">Set up profile</Link>
+            </Button>
             <Button variant="secondary">Notify me</Button>
           </div>
         </section>

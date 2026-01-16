@@ -5,11 +5,12 @@ services:
     environment:
       POSTGRES_USER: scrapers
       POSTGRES_PASSWORD: scrapers
-      POSTGRES_DB: scrapers
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
 
   ofelia:
     image: mcuadros/ofelia:latest
