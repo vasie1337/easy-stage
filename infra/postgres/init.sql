@@ -1,2 +1,0 @@
-CREATE DATABASE scrapers;
-CREATE DATABASE web_app;
