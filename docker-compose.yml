@@ -23,6 +23,19 @@ services:
     environment:
       DATABASE_URL: postgresql://stagemarkt:stagemarkt@postgres:5432/stagemarkt
       PROXY: http://user-vasie_dDUVn:UG_d8SkA8NYGll@ddc.oxylabs.io:8001
+    command: sh -c "python stagemarkt.py && tail -f /dev/null"
+    labels:
+      ofelia.enabled: "true"
+      ofelia.job-exec.scraper.schedule: "0 0 * * * *"
+      ofelia.job-exec.scraper.command: "python stagemarkt.py"
+
+  scheduler:
+    image: mcuadros/ofelia:latest
+    depends_on:
+      - scraper
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
 volumes:
   pgdata:
