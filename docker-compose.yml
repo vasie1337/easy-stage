@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: stagemarkt
+      POSTGRES_PASSWORD: stagemarkt
+      POSTGRES_DB: stagemarkt
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stagemarkt"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 5432:5432
+
+  scraper:
+    build: ./scraper
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://stagemarkt:stagemarkt@postgres:5432/stagemarkt
+      PROXY: http://user-vasie_dDUVn:UG_d8SkA8NYGll@ddc.oxylabs.io:8001
+
+volumes:
+  pgdata:
