@@ -1,0 +1,527 @@
+curl 'https://stagemarkt.nl/api/query-hub/education-detail?id=d7e7e6c5-a5a0-4021-b046-191101628dc2-25740&siteId=STAGEMARKT'
+
+gets detail from a internship id, res:
+{
+	"aantal": 2,
+	"contactpersoon": "Jasper Jaspers",
+	"emailadres": "info@jaspersvloeren.nl",
+	"telefoon": "+31620398496",
+	"id": "d7e7e6c5-a5a0-4021-b046-191101628dc2-25740",
+	"omschrijving": "Vloeren opperen\r\nVloeren leggen\r\nEgaliseren\r\nenz",
+	"titel": "Assistent bouwen, wonen en onderhoud",
+	"wervendeTitel": "leuke gezellige vloerenlegger gezocht",
+	"vaardigheden": "enthousiaste gezellig persoon",
+	"aanbieden": "Gezelligheid\r\ngratis frisdrank\r\nleuke collega's\r\n",
+	"website": "",
+	"adres": {
+		"huisnummer": "15B",
+		"plaats": "Doetinchem",
+		"postcode": "7005 CA",
+		"straat": "Ketelhuis",
+		"coordinaten": {
+			"lat": 51.95636714,
+			"lon": 6.29089024
+		}
+	},
+	"organisatie": {
+		"id": "0d20abbb-ddc8-431e-8ee5-f7c69a0f9f66",
+		"naam": "Jaspers Vloeren",
+		"telefoonnummer": "+31620398496",
+		"emailadres": "info@jaspersvloeren.nl",
+		"website": "http://www.jaspersvloeren.nl",
+		"logoUrl": "https://cdn-sbborganisatielogoscacheprod.azureedge.net/0d20abbb-ddc8-431e-8ee5-f7c69a0f9f66/logo.png?v=20250513134657",
+		"bedrijfsgrootte": "2 tot en met 9 medewerkers",
+		"leerbedrijfId": "100729438",
+		"omschrijving": null
+	},
+	"kerntaken": [
+		{
+			"code": "B1-K1",
+			"naam": "Werkt als assistent in een arbeidsorganisatie",
+			"subtaken": [
+				{
+					"code": "B1-K1-W1",
+					"naam": "Bereidt assisterende werkzaamheden voor",
+					"uitvoerbaar": true
+				},
+				{
+					"code": "B1-K1-W2",
+					"naam": "Voert assisterende werkzaamheden uit",
+					"uitvoerbaar": true
+				},
+				{
+					"code": "B1-K1-W3",
+					"naam": "Meldt zich ter afsluiting van zijn assisterende werkzaamheden af",
+					"uitvoerbaar": true
+				}
+			]
+		},
+		{
+			"code": "P4-K1",
+			"naam": "Verricht werk op het gebied van bouwen, wonen en onderhoud",
+			"subtaken": [
+				{
+					"code": "P4-K1-W1",
+					"naam": "Verzamelt benodigdheden voor een opdracht en maakt de werkplek gebruiksklaar",
+					"uitvoerbaar": true
+				},
+				{
+					"code": "P4-K1-W2",
+					"naam": "Voert werk uit in de bouw, infra, afbouw, hout- en meubelbranche, schildersbranche of AMBOR",
+					"uitvoerbaar": true
+				},
+				{
+					"code": "P4-K1-W3",
+					"naam": "Rondt het werk in bouw, infra, afbouw, hout- en meubelbranche, schildersbranche of AMBOR af",
+					"uitvoerbaar": true
+				}
+			]
+		}
+	],
+	"kenmerken": [
+		{
+			"naam": "Bereid om te werken aan fysieke toegankelijkheid",
+			"omschrijving": "Soms heeft een student een fysieke beperking. Bijvoorbeeld een mobiliteitsbeperking, slechtziendheid,\nof minder energie. Het leerbedrijf denkt graag mee over wat de student nodig heeft. Bijvoorbeeld rolstoeltoegankelijkheid, een aangepaste werkplek, of speciale software.\n"
+		},
+		{
+			"naam": "Mogelijkheden voor begeleiding op maat",
+			"omschrijving": "Soms heeft een student meer of aangepaste begeleiding nodig. Bijvoorbeeld door een beperking, chronische ziekte, taalachterstand, mantelzorgtaken, of als leerling in het praktijkonderwijs. Het leerbedrijf denkt graag mee over wat de student nodig heeft. Bijvoorbeeld de uren spreiden, een prikkelarme werkplek, of dingen vaker herhalen."
+		}
+	],
+	"media": [],
+	"vergoedingen": [
+		{
+			"omschrijving": "Reiskostenvergoeding"
+		},
+		{
+			"omschrijving": "Onkostenvergoeding"
+		}
+	],
+	"bedragVan": 0,
+	"bedragTot": 400,
+	"kwalificatie": {
+		"niveaunaam": "Niveau 1",
+		"crebocode": "25740"
+	},
+	"startdatum": "2026-01-19T00:00:00.000Z",
+	"einddatum": "2027-01-27T00:00:00.000Z",
+	"leerweg": "BOL",
+	"studyDescription": null,
+	"gewijzigdDatum": "2026-01-17T08:14:54.000Z",
+	"dagenPerWeek": ""
+}
+
+curl --request GET --url 'https://stagemarkt.nl/api/query-hub/education-search?siteId=STAGEMARKT&pageSize=9999&type=1&range=9999&plaatsPostcode=Warnsveld&buitenlandseBedrijven=false'
+
+{
+	"totalCount": 346,
+	"totalPages": 346,
+	"pageNumber": 1,
+	"filters": [
+		{
+			"id": "kenmerken",
+			"options": [
+				{
+					"hits": 136,
+					"id": "6293559d-90fe-eb11-94ef-00224880e5e5",
+					"label": "Met uitzicht op een vaste baan"
+				},
+				{
+					"hits": 111,
+					"id": "fb16c3ec-9641-e911-a965-000d3a38ad05",
+					"label": "Mogelijkheden voor begeleiding op maat"
+				},
+				{
+					"hits": 95,
+					"id": "d7abaf39-89fe-eb11-94ef-00224880e5e5",
+					"label": "Opleiden voor een mbo-certificaat"
+				},
+				{
+					"hits": 77,
+					"id": "467acfda-9641-e911-a965-000d3a38ad05",
+					"label": "Bereid om te werken aan fysieke toegankelijkheid"
+				},
+				{
+					"hits": 66,
+					"id": "76b79697-89fe-eb11-94ef-00224880e5e5",
+					"label": "Opleiden voor een Praktijkverklaring"
+				}
+			]
+		},
+		{
+			"id": "sectoren",
+			"options": [
+				{
+					"hits": 69,
+					"id": "b195a344-48eb-4a51-b6d4-fb082650f9c2",
+					"label": "Voedsel, natuur en leefomgeving"
+				},
+				{
+					"hits": 52,
+					"id": "9f457708-62c1-4c1b-a39d-6bc778fd6b57",
+					"label": "Handel, mode, ondernemerschap"
+				},
+				{
+					"hits": 43,
+					"id": "0dd6dc35-bcc9-4042-b80b-7b091dae99bc",
+					"label": "Zorg en welzijn"
+				},
+				{
+					"hits": 35,
+					"id": "702d205f-66e3-4c49-8ea4-5219f7264ca8",
+					"label": "Horeca en bakkerij"
+				},
+				{
+					"hits": 33,
+					"id": "d9807a87-e463-49e9-b7b3-06d1ec67dea4",
+					"label": "Entree"
+				},
+				{
+					"hits": 24,
+					"id": "ab18ea59-3852-4742-89fb-5b11510ac2ff",
+					"label": "Mobiliteit en voertuigen"
+				},
+				{
+					"hits": 19,
+					"id": "9fb032a7-96e5-4383-adac-a9a435b56ef7",
+					"label": "Techniek en procesindustrie"
+				},
+				{
+					"hits": 18,
+					"id": "e9286ccc-71ba-4fe9-ab55-34c7fe66a876",
+					"label": "Uiterlijke verzorging"
+				},
+				{
+					"hits": 15,
+					"id": "ea9c22f8-91de-4424-a355-2216afea8457",
+					"label": "Economie en administratie"
+				},
+				{
+					"hits": 13,
+					"id": "9f4d5391-87d2-48ea-bbe4-035fb2215da5",
+					"label": "Transport, scheepvaart en logistiek"
+				}
+			]
+		},
+		{
+			"id": "sbi",
+			"options": [
+				{
+					"hits": 38,
+					"id": "95aa4f5e-b356-e011-87cd-001372415b01",
+					"label": "Winkels in drogisterij-artikelen"
+				},
+				{
+					"hits": 31,
+					"id": "02ab4f5e-b356-e011-87cd-001372415b01",
+					"label": "Restaurants"
+				},
+				{
+					"hits": 30,
+					"id": "34f54764-b356-e011-87cd-001372415b01",
+					"label": "Landschapsverzorging"
+				},
+				{
+					"hits": 24,
+					"id": "44aa4f5e-b356-e011-87cd-001372415b01",
+					"label": "Supermarkten en dergelijke winkels met een algemeen assortiment voedings- en genotmiddelen"
+				},
+				{
+					"hits": 19,
+					"id": "1ff64764-b356-e011-87cd-001372415b01",
+					"label": "Haarverzorging"
+				},
+				{
+					"hits": 15,
+					"id": "9bf54764-b356-e011-87cd-001372415b01",
+					"label": "Verzorgingshuizen"
+				},
+				{
+					"hits": 14,
+					"id": "faa94f5e-b356-e011-87cd-001372415b01",
+					"label": "Groothandel in woningtextiel en vloerbedekking"
+				},
+				{
+					"hits": 13,
+					"id": "e6a84f5e-b356-e011-87cd-001372415b01",
+					"label": "Vervaardiging van hijs-, hef- en transportwerktuigen"
+				},
+				{
+					"hits": 10,
+					"id": "d9f54764-b356-e011-87cd-001372415b01",
+					"label": "Paardensport en maneges"
+				},
+				{
+					"hits": 10,
+					"id": "d1a74f5e-b356-e011-87cd-001372415b01",
+					"label": "Vervaardiging van brood en vers banketbakkerswerk"
+				}
+			]
+		},
+		{
+			"id": "leerwegen",
+			"options": [
+				{
+					"hits": 163,
+					"id": "acf992a3-efee-4537-9275-9e6b1b7a8fe3",
+					"label": "BBL"
+				},
+				{
+					"hits": 181,
+					"id": "2468c1a0-ad7b-4209-b27b-b12ae0e3d1d2",
+					"label": "BOL"
+				},
+				{
+					"hits": 2,
+					"id": "862d8ede-d4e0-4357-a8de-5f150b85b945",
+					"label": "LWT"
+				}
+			]
+		}
+	],
+	"items": [
+		{
+			"titel": "Zelfstandig medewerker dierverzorging",
+			"wervendeTitel": "",
+			"leerplaatsId": "ea98d364-67fb-41bd-9b22-3265a26d5300-25734",
+			"afstand": null,
+			"vergoedingen": [
+				{
+					"id": "a0c0cc96-7bd3-eb11-8235-00224882c087",
+					"omschrijving": "Reiskostenvergoeding"
+				},
+				{
+					"id": "ac16dd77-c530-f011-8c4e-7c1e52505ae1",
+					"omschrijving": "Onkostenvergoeding"
+				}
+			],
+			"bedragVan": 250,
+			"bedragTot": 750,
+			"adres": {
+				"huisnummer": "2",
+				"plaats": "Almen",
+				"postcode": "7218 NM",
+				"straat": "Hulzerdijk",
+				"coordinaten": {
+					"lat": 52.17452492,
+					"lon": 6.28078005
+				}
+			},
+			"leerweg": "BOL",
+			"startdatum": "2026-01-16T00:00:00.000Z",
+			"kenmerken": [],
+			"kwalificatie": {
+				"niveaunaam": "Niveau 3",
+				"crebocode": "25734"
+			},
+			"organisatie": {
+				"id": "9d41a0ee-f027-4d00-b70b-d6ea7df3dc00",
+				"leerbedrijfId": "100200170",
+				"naam": "Stal V Team B.V.",
+				"logoUrl": "https://cdn-sbborganisatielogoscacheprod.azureedge.net/9d41a0ee-f027-4d00-b70b-d6ea7df3dc00/logo.png?v=20231017141832",
+				"vestigingsadres": {
+					"extra": null,
+					"huisnummer": "2",
+					"postcode": "7218 NM",
+					"plaats": "Almen",
+					"straat": "Hulzerdijk",
+					"land": {
+						"code": "NL",
+						"id": "e883076c-11d5-11d4-90d3-009027dcddb5",
+						"name": "Nederland"
+					}
+				}
+			},
+			"afbeeldingen": [],
+			"gewijzigdDatum": null,
+			"dagenPerWeek": ""
+		}
+	]
+}
+
+curl --request GET \
+  --url 'https://stagemarkt.nl/api/query-hub/opleiding-suggesties?siteId=STAGEMARKT&niveau=4&term=&pageSize=9999'
+
+  {
+	"status": 200,
+	"body": {
+		"data": {
+			"hasNextPage": false,
+			"hasPreviousPage": false,
+			"pageNumber": 1,
+			"totalCount": 9,
+			"totalPages": 1,
+			"items": [
+				{
+					"creboCode": 25740,
+					"equivalenten": [
+						"Assistent bouw en infra",
+						"Assistent houtbranche",
+						"Assistent afbouw",
+						"Assistent schilderen / industriële lakverwerking",
+						"Assistent schoonmaak",
+						"Arbeidsmarktgekwalificeerd assistent",
+						"Entree groen",
+						"Entree ",
+						"Entree",
+						"Assistent bouwen, wonen en onderhoud",
+						"AKA",
+						"Assistent schilderen / industriele lakverwerking",
+						"Assistent schilderen / industriele lakverwerking (Assistent lakspuiter)",
+						"Assistent schilderen / industriele lakverwerking (Assistent metaalconserveerder)",
+						"Assistent schilderen / industriele lakverwerking (Assistent poedercoater)",
+						"Assistent schilderen / industriele lakverwerking (Assistent schilder)",
+						"Assistent bouw en infra (Assistent bouw en infra)"
+					],
+					"label": "Assistent bouwen, wonen en onderhoud",
+					"synoniemen": [],
+					"value": "Assistent bouwen, wonen en onderhoud (25740)"
+				},
+				{
+					"creboCode": 25741,
+					"equivalenten": [
+						"Zorghulp",
+						"Arbeidsmarktgekwalificeerd assistent",
+						"Entree groen",
+						"Entree ",
+						"Entree",
+						"Assistent dienstverlening en zorg",
+						"AKA"
+					],
+					"label": "Assistent dienstverlening",
+					"synoniemen": [],
+					"value": "Assistent dienstverlening (25741)"
+				},
+				{
+					"creboCode": 25742,
+					"equivalenten": [
+						"Horeca-assistent",
+						"Assistent bakker",
+						"Assistent medewerker voedsel en leefomgeving",
+						"Arbeidsmarktgekwalificeerd assistent",
+						"Entree groen",
+						"Entree ",
+						"Entree",
+						"Assistent horeca, voeding of voedingsindustrie",
+						"AKA",
+						"Assistent medewerker voedsel en leefomgeving (Assistent voeding/voedingsindustrie)",
+						"Assistent medewerker voedsel en leefomgeving (Voedingsindustrie)",
+						"Assistent voedingsindustrie"
+					],
+					"label": "Assistent horeca, voeding of voedingsindustrie",
+					"synoniemen": [],
+					"value": "Assistent horeca, voeding of voedingsindustrie (25742)"
+				},
+				{
+					"creboCode": 25743,
+					"equivalenten": [
+						"Assistent logistiek medewerker",
+						"Arbeidsmarktgekwalificeerd assistent",
+						"Entree groen",
+						"Entree ",
+						"Entree",
+						"Assistent logistiek",
+						"AKA",
+						"Assistent medewerker transport en logistiek",
+						"Assistent logistiek medewerker (Assistent logistiek medewerker KC Handel)",
+						"Assistent logistiek medewerker (Assistent logistiek medewerker VTL)"
+					],
+					"label": "Assistent logistiek",
+					"synoniemen": [],
+					"value": "Assistent logistiek (25743)"
+				},
+				{
+					"creboCode": 25744,
+					"equivalenten": [
+						"Arbeidsmarktgekwalificeerd assistent",
+						"Entree groen",
+						"Entree ",
+						"Entree",
+						"Assistent installatie- en constructietechniek",
+						"AKA",
+						"Assistent metaal-, elektro-en installatietechniek (Assistent installatie)",
+						"Assistent metaal-, elektro- en installatietechniek (Assistent metaalbewerking)",
+						"Assistent metaal-, elektro- en installatietechniek (Assistent montage)"
+					],
+					"label": "Assistent metaal-, elektro- en installatietechniek",
+					"synoniemen": [],
+					"value": "Assistent metaal-, elektro- en installatietechniek (25744)"
+				},
+				{
+					"creboCode": 25745,
+					"equivalenten": [
+						"Assistent Mobiliteitsbranche",
+						"Arbeidsmarktgekwalificeerd assistent",
+						"Entree groen",
+						"Entree ",
+						"Entree",
+						"Assistent mobiliteitsbranche",
+						"AKA",
+						"Assistent Mobiliteitsbranche (Assistent tweewielertechnicus)",
+						"Assistent Mobiliteitsbranche (Assistent voertuigentechnicus)",
+						"Assistent carrosseriebranche"
+					],
+					"label": "Assistent mobiliteitsbranche",
+					"synoniemen": [],
+					"value": "Assistent mobiliteitsbranche (25745)"
+				},
+				{
+					"creboCode": 25746,
+					"equivalenten": [
+						"Arbeidsmarktgekwalificeerd assistent",
+						"Entree groen",
+						"Entree ",
+						"Entree",
+						"Assistent plant of (groene) leefomgeving",
+						"Assistent plant, dier of (groene) leefomgeving",
+						"AKA",
+						"Assistent medewerker voedsel en leefomgeving (Natuur en leefomgeving)",
+						"Assistent medewerker voedsel en leefomgeving (Plantenteelt)",
+						"Assistent medewerker voedsel en leefomgeving (Assistent natuur en groen)",
+						"Assistent medewerker voedsel en leefomgeving (Assistent plantenteelt)"
+					],
+					"label": "Assistent plant, dier of groene omgeving",
+					"synoniemen": [],
+					"value": "Assistent plant, dier of groene omgeving (25746)"
+				},
+				{
+					"creboCode": 25747,
+					"equivalenten": [
+						"Assistent operator",
+						"Arbeidsmarktgekwalificeerd assistent",
+						"Entree groen",
+						"Entree ",
+						"Entree",
+						"Assistent procestechniek",
+						"AKA",
+						"Assistent operator (Assistent operator productietechniek)",
+						"Assistent operator (Basisoperator)",
+						"Assistent operator productietechniek",
+						"Basisoperator"
+					],
+					"label": "Assistent procestechniek",
+					"synoniemen": [],
+					"value": "Assistent procestechniek (25747)"
+				},
+				{
+					"creboCode": 25748,
+					"equivalenten": [
+						"Aankomend verkoopmedewerker",
+						"Assistent medewerker mode/maatkleding/interieur",
+						"Arbeidsmarktgekwalificeerd assistent",
+						"Entree groen",
+						"Entree ",
+						"Entree",
+						"Assistent verkoop/retail",
+						"AKA",
+						"Assistent medewerker voedsel en leefomgeving (Groene detailhandel)",
+						"Assistent medewerker voedsel en leefomgeving (Assistent groene detailhandel)"
+					],
+					"label": "Assistent verkoop/retail",
+					"synoniemen": [],
+					"value": "Assistent verkoop/retail (25748)"
+				}
+			]
+		}
+	}
+}
