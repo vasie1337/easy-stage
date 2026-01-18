@@ -4,7 +4,7 @@ Runs all platform scrapers sequentially
 """
 import asyncio
 import stagemarkt
-# import nvb  # Uncomment when ready
+import nvb
 
 
 async def main():
@@ -13,10 +13,8 @@ async def main():
     print("=" * 60)
     
     # Run each scraper
-    await stagemarkt.scrape()
-    
-    # Uncomment when NVB is ready:
-    # await nvb.scrape()
+    # await stagemarkt.scrape()
+    await nvb.scrape()
     
     print("\n" + "=" * 60)
     print("ALL SCRAPERS COMPLETE!")

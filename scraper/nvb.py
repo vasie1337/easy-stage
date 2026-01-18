@@ -1,8 +1,6 @@
 """
-NVB scraper (template)
-Scrapes internships from NVB and normalizes to unified schema
-
-TODO: Implement API calls based on NVB's API structure
+Nationale Vacaturebank scraper
+Scrapes internships from nationalevacaturebank.nl and normalizes to unified schema
 """
 import os
 import asyncio
@@ -13,67 +11,95 @@ SOURCE = "nvb"
 PROXY = os.environ.get("PROXY")
 CONCURRENCY = 50
 
-# API endpoints - TODO: fill in actual URLs
-SEARCH_URL = "https://..."
-DETAIL_URL = "https://..."
+# API endpoint
+BASE_URL = "https://api.nationalevacaturebank.nl/api/jobs/v3/sites/nationalevacaturebank.nl/jobs"
+SEARCH_URL = f"{BASE_URL}?limit=1000&sort=date&filters=contractType%3AStage"
+
+# Education level mapping
+LEVEL_MAP = {
+    "MBO": "mbo",
+    "HBO": "hbo",
+    "WO": "wo",
+    "Middelbaar": "vmbo",
+    "Basisonderwijs": "basis",
+}
 
 
 def extract_keywords(raw):
-    """
-    Extract keywords from NVB data
-    Sources: dcoTitles[].title + industries + jobTitles
-    """
+    """Extract keywords from NVB data"""
     keywords = set()
     
     # From dcoTitles
-    for dco in raw.get("dcoTitles", []):
+    for dco in raw.get("dcoTitles") or []:
         if dco.get("title"):
             keywords.add(dco["title"].lower())
     
     # From industries
-    for ind in raw.get("industries", []):
+    for ind in raw.get("industries") or []:
         keywords.add(ind.lower())
     
     # From jobTitles
-    for jt in raw.get("jobTitles", []):
+    for jt in raw.get("jobTitles") or []:
         keywords.add(jt.lower())
+    
+    # From categories
+    for cat in raw.get("categories") or []:
+        keywords.add(cat.lower())
+    
+    # From functionTitle
+    if raw.get("functionTitle"):
+        keywords.add(raw["functionTitle"].lower())
     
     return [k for k in keywords if k and len(k) > 2]
 
 
 def normalize(raw):
     """Transform NVB API response to unified schema"""
-    # TODO: Map fields from NVB's API response
+    company = raw.get("company") or {}
+    apply_data = raw.get("apply") or {}
+    contact_data = raw.get("contact") or {}
+    loc = raw.get("workLocation") or {}
+    geo = loc.get("geolocation") or {}
+    
+    # Map education level
+    level = None
+    for edu in raw.get("educationLevels") or []:
+        if edu in LEVEL_MAP:
+            level = LEVEL_MAP[edu]
+            break
     
     return {
         "id": raw.get("id"),
         "source": SOURCE,
-        "title": raw.get("title"),
+        "title": raw.get("title") or raw.get("functionTitle"),
         "description": raw.get("description"),
-        "media": raw.get("media", []),
+        "media": [],
         
         "company": {
-            "name": raw.get("companyName"),
-            "site": raw.get("companyWebsite"),
-            "logo": raw.get("companyLogo"),
+            "name": company.get("name"),
+            "site": company.get("website"),
+            "logo": None,  # logos field has inconsistent format
         },
         
         "apply": {
-            "option": "link",  # or "email"
-            "value": raw.get("applyUrl") or raw.get("applyEmail"),
+            "option": "email" if contact_data.get("emailAddress") else ("link" if apply_data.get("option") == "external" else "email"),
+            "value": contact_data.get("emailAddress") or apply_data.get("url") or apply_data.get("email"),
         },
         
         "location": {
-            "street": raw.get("street"),
-            "zip": raw.get("zip"),
-            "city": raw.get("city"),
-            "province": raw.get("province"),
+            "street": loc.get("street"),
+            "zip": loc.get("zipCode"),
+            "city": loc.get("city"),
+            "province": loc.get("province"),
             "country": "NL",
-            "coords": {"lat": raw.get("lat"), "lon": raw.get("lon")},
+            "coords": {
+                "lat": float(geo["latitude"]) if geo.get("latitude") else None,
+                "lon": float(geo["longitude"]) if geo.get("longitude") else None,
+            } if geo else None,
         },
         
-        "level": "hbo",  # TODO: map from raw data
-        "sublevel": None,
+        "level": level,
+        "sublevel": raw.get("metadata", {}).get("isco"),
         "keywords": extract_keywords(raw),
         
         "start_date": raw.get("startDate"),
@@ -95,17 +121,32 @@ async def fetch_with_retry(client, url):
             await asyncio.sleep(0.5)
 
 
-async def fetch_all_ids(client):
-    """Fetch all internship IDs from NVB search API"""
-    # TODO: implement pagination/search logic
-    data = await fetch_with_retry(client, SEARCH_URL)
-    return [item["id"] for item in data.get("items", [])]
+async def fetch_page(client, page):
+    """Fetch a single page of jobs"""
+    url = f"{SEARCH_URL}&page={page}"
+    data = await fetch_with_retry(client, url)
+    jobs = data.get("_embedded", {}).get("jobs", [])
+    return jobs, data.get("pages", 0)
 
 
-async def fetch_detail(client, sem, internship_id):
-    async with sem:
-        data = await fetch_with_retry(client, f"{DETAIL_URL}/{internship_id}")
-        return internship_id, data
+async def fetch_all_jobs(client):
+    """Fetch all pages of jobs, deduplicated by ID"""
+    jobs_by_id = {}
+    
+    # Get first page to know total pages
+    jobs, total_pages = await fetch_page(client, 1)
+    for job in jobs:
+        jobs_by_id[job["id"]] = job
+    print(f"  Page 1/{total_pages}: {len(jobs)} jobs, {len(jobs_by_id)} unique")
+    
+    # Fetch remaining pages
+    for page in range(2, total_pages + 1):
+        jobs, _ = await fetch_page(client, page)
+        for job in jobs:
+            jobs_by_id[job["id"]] = job
+        print(f"  Page {page}/{total_pages}: {len(jobs)} jobs, {len(jobs_by_id)} unique total")
+    
+    return list(jobs_by_id.values())
 
 
 # ============ MAIN ============
@@ -117,12 +158,12 @@ async def scrape():
     
     client = rnet.Client(proxy=PROXY) if PROXY else rnet.Client()
     conn = setup_db()
-    sem = asyncio.Semaphore(CONCURRENCY)
     
-    # Step 1: Get all IDs from API
-    print("\n[1] Fetching all internship IDs...")
-    api_ids = set(await fetch_all_ids(client))
-    print(f"  Total from API: {len(api_ids)}")
+    # Step 1: Fetch all jobs from API (includes full details)
+    print("\n[1] Fetching all jobs from API...")
+    all_jobs = await fetch_all_jobs(client)
+    api_ids = set(job["id"] for job in all_jobs)
+    print(f"  Total from API: {len(api_ids)} internships")
     
     # Step 2: Compare with database
     print("\n[2] Comparing with database...")
@@ -134,28 +175,32 @@ async def scrape():
     
     print(f"  To delete: {len(to_delete)}")
     print(f"  To add: {len(to_add)}")
+    print(f"  Unchanged: {len(db_ids & api_ids)}")
     
     # Step 3: Delete removed listings
     if to_delete:
         print("\n[3] Deleting removed listings...")
         delete_ids(conn, SOURCE, to_delete)
         print(f"  Deleted {len(to_delete)}")
+    else:
+        print("\n[3] No listings to delete")
     
-    # Step 4: Fetch and add new listings
+    # Step 4: Add new listings (details already fetched)
     if to_add:
-        print(f"\n[4] Fetching {len(to_add)} new listings...")
-        tasks = [fetch_detail(client, sem, id) for id in to_add]
+        jobs_to_add = [j for j in all_jobs if j["id"] in to_add]
+        print(f"\n[4] Adding {len(jobs_to_add)} new listings...")
         done = 0
-        for coro in asyncio.as_completed(tasks):
-            internship_id, raw = await coro
-            normalized = normalize(raw)
+        for job in jobs_to_add:
+            normalized = normalize(job)
             save_internship(conn, normalized)
             done += 1
             if done % 100 == 0:
-                print(f"  Progress: {done}/{len(to_add)}")
+                print(f"  Progress: {done}/{len(jobs_to_add)}")
                 conn.commit()
         conn.commit()
         print(f"  Added {done} new listings")
+    else:
+        print("\n[4] No new listings to add")
     
     conn.close()
     print("\n" + "=" * 50)
