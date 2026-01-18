@@ -3,6 +3,7 @@ Stagemarkt.nl scraper
 Scrapes internships from stagemarkt.nl and normalizes to unified schema
 """
 import os
+import json
 import asyncio
 import rnet
 from db import setup_db, get_existing_ids, delete_ids, save_internship, get_connection
@@ -100,14 +101,22 @@ def normalize(raw):
 
 # ============ API FETCHERS ============
 
-async def fetch_with_retry(client, url):
-    while True:
+async def fetch_with_retry(client, url, max_retries=10):
+    delay = 1
+    for attempt in range(max_retries):
         try:
             resp = await client.get(url)
-            return await resp.json()
+            text = await resp.text()
+            if not text or not text.strip():
+                raise ValueError("Empty response")
+            return json.loads(text)
         except Exception as e:
-            print(f"  Retry: {e}")
-            await asyncio.sleep(0.5)
+            if attempt == max_retries - 1:
+                print(f"  Failed after {max_retries} attempts: {url}")
+                raise
+            print(f"  Retry {attempt + 1}/{max_retries} (waiting {delay}s): {e}")
+            await asyncio.sleep(delay)
+            delay = min(delay * 2, 30)  # Exponential backoff, max 30s
 
 
 async def fetch_crebocodes(client, niveau):
