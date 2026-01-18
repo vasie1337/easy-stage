@@ -14,8 +14,8 @@ async def main():
     print("=" * 60)
     
     # Run each scraper
-    await stagemarkt.scrape()
     await nvb.scrape()
+    await stagemarkt.scrape()
     
     # Sync to Meilisearch
     meili_sync.sync()

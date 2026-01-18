@@ -146,6 +146,7 @@ async def scrape():
     print("STAGEMARKT SCRAPER")
     print("=" * 50)
     
+    print(f"  Using proxy: {PROXY[:30]}..." if PROXY else "  No proxy configured!")
     client = rnet.Client(proxy=PROXY) if PROXY else rnet.Client()
     conn = setup_db()
     sem = asyncio.Semaphore(CONCURRENCY)
