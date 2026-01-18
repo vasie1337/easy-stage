@@ -1,11 +1,13 @@
+"""
+Stagemarkt.nl scraper
+Scrapes internships from stagemarkt.nl and normalizes to unified schema
+"""
 import os
-import json
 import asyncio
 import rnet
-import psycopg2
+from db import setup_db, get_existing_ids, delete_ids, save_internship, get_connection
 
-# Config
-DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://stagemarkt:stagemarkt@localhost:5432/stagemarkt")
+SOURCE = "stagemarkt"
 PROXY = os.environ.get("PROXY")
 CONCURRENCY = 50
 
@@ -14,133 +16,89 @@ SUGGESTIES_URL = "https://stagemarkt.nl/api/query-hub/opleiding-suggesties?siteI
 SEARCH_URL = "https://stagemarkt.nl/api/query-hub/education-search?siteId=STAGEMARKT&pageSize=9999&range=9999&plaatsPostcode=Utrecht&buitenlandseBedrijven=false"
 DETAIL_URL = "https://stagemarkt.nl/api/query-hub/education-detail?siteId=STAGEMARKT&id="
 
+# MBO niveau mapping
+LEVEL_MAP = {
+    "Niveau 1": "mbo1",
+    "Niveau 2": "mbo2", 
+    "Niveau 3": "mbo3",
+    "Niveau 4": "mbo4",
+}
 
-def setup_db():
-    conn = psycopg2.connect(DATABASE_URL)
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS internships (
-            id TEXT PRIMARY KEY,
-            aantal INTEGER,
-            contactpersoon TEXT,
-            emailadres TEXT,
-            telefoon TEXT,
-            omschrijving TEXT,
-            titel TEXT,
-            wervende_titel TEXT,
-            vaardigheden TEXT,
-            aanbieden TEXT,
-            website TEXT,
-            adres_huisnummer TEXT,
-            adres_plaats TEXT,
-            adres_postcode TEXT,
-            adres_straat TEXT,
-            adres_lat REAL,
-            adres_lon REAL,
-            organisatie_id TEXT,
-            organisatie_naam TEXT,
-            organisatie_telefoon TEXT,
-            organisatie_email TEXT,
-            organisatie_website TEXT,
-            organisatie_logo TEXT,
-            organisatie_grootte TEXT,
-            organisatie_leerbedrijf_id TEXT,
-            organisatie_omschrijving TEXT,
-            kerntaken JSONB,
-            kenmerken JSONB,
-            media JSONB,
-            vergoedingen JSONB,
-            bedrag_van REAL,
-            bedrag_tot REAL,
-            kwalificatie_niveau TEXT,
-            kwalificatie_crebocode TEXT,
-            startdatum TEXT,
-            einddatum TEXT,
-            leerweg TEXT,
-            study_description TEXT,
-            gewijzigd_datum TEXT,
-            dagen_per_week TEXT,
-            raw_json JSONB
-        )
-    """)
-    conn.commit()
-    return conn
-
-
-def get_existing_ids(conn):
-    cur = conn.cursor()
-    cur.execute("SELECT id FROM internships")
-    return set(row[0] for row in cur.fetchall())
-
-
-def delete_ids(conn, ids):
-    if not ids:
-        return
-    cur = conn.cursor()
-    cur.execute("DELETE FROM internships WHERE id = ANY(%s)", (list(ids),))
-    conn.commit()
-
-
-def save_internship(conn, data):
-    adres = data.get("adres") or {}
-    coords = adres.get("coordinaten") or {}
-    org = data.get("organisatie") or {}
-    kwal = data.get("kwalificatie") or {}
+def extract_keywords(raw):
+    """Extract keywords from stagemarkt data"""
+    keywords = set()
     
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO internships VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        ON CONFLICT (id) DO UPDATE SET
-            aantal=EXCLUDED.aantal, contactpersoon=EXCLUDED.contactpersoon, emailadres=EXCLUDED.emailadres,
-            telefoon=EXCLUDED.telefoon, omschrijving=EXCLUDED.omschrijving, titel=EXCLUDED.titel,
-            wervende_titel=EXCLUDED.wervende_titel, vaardigheden=EXCLUDED.vaardigheden, aanbieden=EXCLUDED.aanbieden,
-            website=EXCLUDED.website, raw_json=EXCLUDED.raw_json, gewijzigd_datum=EXCLUDED.gewijzigd_datum
-    """, (
-        data.get("id"),
-        data.get("aantal"),
-        data.get("contactpersoon"),
-        data.get("emailadres"),
-        data.get("telefoon"),
-        data.get("omschrijving"),
-        data.get("titel"),
-        data.get("wervendeTitel"),
-        data.get("vaardigheden"),
-        data.get("aanbieden"),
-        data.get("website"),
-        adres.get("huisnummer"),
-        adres.get("plaats"),
-        adres.get("postcode"),
-        adres.get("straat"),
-        coords.get("lat"),
-        coords.get("lon"),
-        org.get("id"),
-        org.get("naam"),
-        org.get("telefoonnummer"),
-        org.get("emailadres"),
-        org.get("website"),
-        org.get("logoUrl"),
-        org.get("bedrijfsgrootte"),
-        org.get("leerbedrijfId"),
-        org.get("omschrijving"),
-        json.dumps(data.get("kerntaken", [])),
-        json.dumps(data.get("kenmerken", [])),
-        json.dumps(data.get("media", [])),
-        json.dumps(data.get("vergoedingen", [])),
-        data.get("bedragVan"),
-        data.get("bedragTot"),
-        kwal.get("niveaunaam"),
-        kwal.get("crebocode"),
-        data.get("startdatum"),
-        data.get("einddatum"),
-        data.get("leerweg"),
-        data.get("studyDescription"),
-        data.get("gewijzigdDatum"),
-        data.get("dagenPerWeek"),
-        json.dumps(data)
-    ))
+    # From kerntaken
+    for kt in raw.get("kerntaken", []):
+        if kt.get("naam"):
+            keywords.add(kt["naam"].lower())
+        for st in kt.get("subtaken", []):
+            if st.get("naam"):
+                keywords.add(st["naam"].lower())
+    
+    # From kwalificatie
+    kwal = raw.get("kwalificatie", {})
+    if kwal.get("niveaunaam"):
+        keywords.add(kwal["niveaunaam"].lower())
+    
+    # From vaardigheden
+    if raw.get("vaardigheden"):
+        for v in raw["vaardigheden"].split(","):
+            keywords.add(v.strip().lower())
+    
+    # From titel
+    if raw.get("titel"):
+        keywords.add(raw["titel"].lower())
+    
+    return [k for k in keywords if k and len(k) > 2]
 
 
-# ============ API FETCHERS (with retry) ============
+def normalize(raw):
+    """Transform stagemarkt API response to unified schema"""
+    adres = raw.get("adres") or {}
+    coords = adres.get("coordinaten") or {}
+    org = raw.get("organisatie") or {}
+    kwal = raw.get("kwalificatie") or {}
+    
+    return {
+        "id": raw.get("id"),
+        "source": SOURCE,
+        "title": raw.get("wervendeTitel") or raw.get("titel"),
+        "description": raw.get("omschrijving"),
+        "media": raw.get("media", []),
+        
+        "company": {
+            "name": org.get("naam"),
+            "site": org.get("website"),
+            "logo": org.get("logoUrl"),
+        },
+        
+        "apply": {
+            "option": "email",
+            "value": raw.get("emailadres") or org.get("emailadres"),
+        },
+        
+        "location": {
+            "street": f"{adres.get('straat', '')} {adres.get('huisnummer', '')}".strip(),
+            "zip": adres.get("postcode"),
+            "city": adres.get("plaats"),
+            "province": None,  # Not provided by stagemarkt
+            "country": "NL",
+            "coords": {"lat": coords.get("lat"), "lon": coords.get("lon")} if coords else None,
+        },
+        
+        "level": LEVEL_MAP.get(kwal.get("niveaunaam")),
+        "sublevel": kwal.get("crebocode"),
+        "keywords": extract_keywords(raw),
+        
+        "start_date": raw.get("startdatum"),
+        "end_date": raw.get("einddatum"),
+        
+        "raw": raw,
+    }
+
+
+# ============ API FETCHERS ============
 
 async def fetch_with_retry(client, url):
     while True:
@@ -163,10 +121,7 @@ async def fetch_ids_for_crebo(client, sem, crebocode, niveau):
     async with sem:
         url = f"{SEARCH_URL}&crebocode={crebocode}&niveau={niveau}"
         data = await fetch_with_retry(client, url)
-        items = data.get("items", [])
-        if not items and data.get("totalCount", 0) > 0:
-            print(f"  DEBUG: crebo {crebocode} has totalCount={data.get('totalCount')} but no items!")
-        return [item["leerplaatsId"] for item in items]
+        return [item["leerplaatsId"] for item in data.get("items", [])]
 
 
 async def fetch_detail(client, sem, internship_id):
@@ -177,34 +132,25 @@ async def fetch_detail(client, sem, internship_id):
 
 # ============ MAIN ============
 
-async def main():
+async def scrape():
     print("=" * 50)
     print("STAGEMARKT SCRAPER")
     print("=" * 50)
     
-    # Setup
     client = rnet.Client(proxy=PROXY) if PROXY else rnet.Client()
     conn = setup_db()
     sem = asyncio.Semaphore(CONCURRENCY)
     
     # Step 1: Get all crebocodes
     print("\n[1] Fetching crebocodes...")
-    tasks = [fetch_crebocodes(client, n) for n in range(5)]
-    results = await asyncio.gather(*tasks)
-    all_crebos = [item for sublist in results for item in sublist]
-    print(f"  Total: {len(all_crebos)} crebocodes")
+    # tasks = [fetch_crebocodes(client, n) for n in range(5)]
+    # results = await asyncio.gather(*tasks)
+    # all_crebos = [item for sublist in results for item in sublist]
+    # print(f"  Total: {len(all_crebos)} crebocodes")
+    all_crebos = [(25181, "Niveau 1")]
     
     # Step 2: Get all internship IDs from API
     print("\n[2] Fetching all internship IDs from API...")
-    print(f"  Using proxy: {PROXY}")
-    
-    # Debug: test one request first
-    test_url = f"{SEARCH_URL}&crebocode={all_crebos[0][0]}&niveau={all_crebos[0][1]}"
-    print(f"  Testing: {test_url}")
-    test_data = await fetch_with_retry(client, test_url)
-    print(f"  Test response keys: {list(test_data.keys())}")
-    print(f"  Test totalCount: {test_data.get('totalCount', 'N/A')}, items: {len(test_data.get('items', []))}")
-    
     tasks = [fetch_ids_for_crebo(client, sem, c, n) for c, n in all_crebos]
     api_ids = set()
     done = 0
@@ -218,21 +164,20 @@ async def main():
     
     # Step 3: Compare with database
     print("\n[3] Comparing with database...")
-    db_ids = get_existing_ids(conn)
+    db_ids = get_existing_ids(conn, SOURCE)
     print(f"  Existing in DB: {len(db_ids)}")
     
-    to_delete = db_ids - api_ids  # In DB but not in API = deleted
-    to_add = api_ids - db_ids      # In API but not in DB = new
-    unchanged = db_ids & api_ids   # In both = skip
+    to_delete = db_ids - api_ids
+    to_add = api_ids - db_ids
     
     print(f"  To delete: {len(to_delete)}")
     print(f"  To add: {len(to_add)}")
-    print(f"  Unchanged: {len(unchanged)}")
+    print(f"  Unchanged: {len(db_ids & api_ids)}")
     
     # Step 4: Delete removed listings
     if to_delete:
         print("\n[4] Deleting removed listings...")
-        delete_ids(conn, to_delete)
+        delete_ids(conn, SOURCE, to_delete)
         print(f"  Deleted {len(to_delete)} listings")
     else:
         print("\n[4] No listings to delete")
@@ -243,8 +188,9 @@ async def main():
         tasks = [fetch_detail(client, sem, id) for id in to_add]
         done = 0
         for coro in asyncio.as_completed(tasks):
-            internship_id, detail = await coro
-            save_internship(conn, detail)
+            internship_id, raw = await coro
+            normalized = normalize(raw)
+            save_internship(conn, normalized)
             done += 1
             if done % 100 == 0:
                 print(f"  Progress: {done}/{len(to_add)}")
@@ -256,9 +202,9 @@ async def main():
     
     conn.close()
     print("\n" + "=" * 50)
-    print("DONE!")
+    print("STAGEMARKT DONE!")
     print("=" * 50)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(scrape())
