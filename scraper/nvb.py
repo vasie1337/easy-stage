@@ -7,7 +7,7 @@ import re
 import json
 import asyncio
 import rnet
-from rnet.proxy import Proxy
+from rnet import Proxy
 from db import setup_db, get_existing_ids, delete_ids, save_internship
 
 
