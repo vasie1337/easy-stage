@@ -7,6 +7,7 @@ import re
 import json
 import asyncio
 import rnet
+from rnet.proxy import Proxy
 from db import setup_db, get_existing_ids, delete_ids, save_internship
 
 
@@ -50,7 +51,6 @@ def clean_html(html):
     return text
 
 SOURCE = "nvb"
-PROXY = os.environ.get("PROXY")
 CONCURRENCY = 50
 
 # API endpoint
@@ -212,11 +212,10 @@ async def scrape():
     print("=" * 50)
     print("NVB SCRAPER")
     print("=" * 50)
-    
-    print(f"  Using proxy: {PROXY[:30]}..." if PROXY else "  No proxy configured!")
-    client = rnet.Client(proxy=PROXY) if PROXY else rnet.Client()
     conn = setup_db()
     
+    client = rnet.Client(proxies=[Proxy.https("http://user-zxczxc_I3mEC:IaZG+3av+AZI0lng@dc.oxylabs.io:8000")])
+
     # Step 1: Fetch all jobs from API (includes full details)
     print("\n[1] Fetching all jobs from API...")
     all_jobs = await fetch_all_jobs(client)

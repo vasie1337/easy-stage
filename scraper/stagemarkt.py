@@ -7,9 +7,9 @@ import json
 import asyncio
 import rnet
 from db import setup_db, get_existing_ids, delete_ids, save_internship, get_connection
+from rnet.proxy import Proxy
 
 SOURCE = "stagemarkt"
-PROXY = os.environ.get("PROXY")
 CONCURRENCY = 50
 
 # API endpoints
@@ -146,8 +146,7 @@ async def scrape():
     print("STAGEMARKT SCRAPER")
     print("=" * 50)
     
-    print(f"  Using proxy: {PROXY[:30]}..." if PROXY else "  No proxy configured!")
-    client = rnet.Client(proxy=PROXY) if PROXY else rnet.Client()
+    client = rnet.Client(proxies=[Proxy.https("http://user-zxczxc_I3mEC:IaZG+3av+AZI0lng@dc.oxylabs.io:8000")])
     conn = setup_db()
     sem = asyncio.Semaphore(CONCURRENCY)
     
