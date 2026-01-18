@@ -185,17 +185,27 @@ async def scrape():
     if to_add:
         print(f"\n[5] Fetching {len(to_add)} new listings...")
         tasks = [fetch_detail(client, sem, id) for id in to_add]
+        
+        # Collect all results first (parallel HTTP fetches)
+        results = []
         done = 0
         for coro in asyncio.as_completed(tasks):
             internship_id, raw = await coro
-            normalized = normalize(raw)
-            save_internship(conn, normalized)
+            results.append((internship_id, raw))
             done += 1
             if done % 100 == 0:
-                print(f"  Progress: {done}/{len(to_add)}")
+                print(f"  Fetched: {done}/{len(to_add)}")
+        
+        # Now save sequentially (avoids deadlocks)
+        print(f"  Saving {len(results)} to database...")
+        for i, (internship_id, raw) in enumerate(results):
+            normalized = normalize(raw)
+            save_internship(conn, normalized)
+            if (i + 1) % 1000 == 0:
                 conn.commit()
+                print(f"  Saved: {i+1}/{len(results)}")
         conn.commit()
-        print(f"  Added {done} new listings")
+        print(f"  Added {len(results)} new listings")
     else:
         print("\n[5] No new listings to add")
     
