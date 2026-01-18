@@ -41,7 +41,7 @@ services:
       DATABASE_URL: postgresql://stagemarkt:stagemarkt@postgres:5432/stagemarkt
       MEILI_URL: http://meilisearch:7700
       MEILI_MASTER_KEY: masterkey123
-      PROXY: http://user-vasie_dDUVn:UG_d8SkA8NYGll@ddc.oxylabs.io:8001
+      PROXY: http://user-zxczxc_I3mEC:IaZG+3av+AZI0lng@dc.oxylabs.io:8000
     command: sh -c "python main.py && tail -f /dev/null"
     labels:
       ofelia.enabled: "true"
