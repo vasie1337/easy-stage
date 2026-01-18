@@ -26,7 +26,7 @@ export function SearchBox() {
           50
         )
         setResults(res.hits)
-        setTotal(res.totalHits ?? res.estimatedTotalHits ?? res.hits.length)
+        setTotal((res as any).totalHits ?? res.estimatedTotalHits ?? res.hits.length)
       } catch (err) {
         console.error(err)
         setResults([])
