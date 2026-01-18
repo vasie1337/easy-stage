@@ -112,7 +112,7 @@ async def fetch_with_retry(client, url):
 
 async def fetch_crebocodes(client, niveau):
     data = await fetch_with_retry(client, SUGGESTIES_URL + str(niveau))
-    items = data.get("body", {}).get("data", {}).get("items", [])
+    items = ((data.get("body") or {}).get("data") or {}).get("items") or []
     print(f"  Niveau {niveau}: {len(items)} crebocodes")
     return [(item["creboCode"], niveau) for item in items]
 

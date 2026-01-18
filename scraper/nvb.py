@@ -140,7 +140,7 @@ def normalize(raw):
         },
         
         "level": level,
-        "sublevel": raw.get("metadata", {}).get("isco"),
+        "sublevel": (raw.get("metadata") or {}).get("isco"),
         "keywords": extract_keywords(raw),
         
         "start_date": raw.get("startDate"),
@@ -166,7 +166,7 @@ async def fetch_page(client, page):
     """Fetch a single page of jobs"""
     url = f"{SEARCH_URL}&page={page}"
     data = await fetch_with_retry(client, url)
-    jobs = data.get("_embedded", {}).get("jobs", [])
+    jobs = (data.get("_embedded") or {}).get("jobs") or []
     return jobs, data.get("pages", 0)
 
 
