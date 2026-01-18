@@ -3,9 +3,50 @@ Nationale Vacaturebank scraper
 Scrapes internships from nationalevacaturebank.nl and normalizes to unified schema
 """
 import os
+import re
 import asyncio
 import rnet
 from db import setup_db, get_existing_ids, delete_ids, save_internship
+
+
+def clean_html(html):
+    """Convert HTML to plain text"""
+    if not html:
+        return None
+    
+    # Replace common block elements with newlines
+    text = re.sub(r'<br\s*/?>', '\n', html)
+    text = re.sub(r'</p>', '\n\n', text)
+    text = re.sub(r'</li>', '\n', text)
+    text = re.sub(r'</h[1-6]>', '\n\n', text)
+    
+    # Add bullet points for list items
+    text = re.sub(r'<li[^>]*>', '• ', text)
+    
+    # Remove all remaining HTML tags
+    text = re.sub(r'<[^>]+>', '', text)
+    
+    # Decode HTML entities
+    text = text.replace('&amp;', '&')
+    text = text.replace('&lt;', '<')
+    text = text.replace('&gt;', '>')
+    text = text.replace('&quot;', '"')
+    text = text.replace('&apos;', "'")
+    text = text.replace('&nbsp;', ' ')
+    text = text.replace('&euml;', 'ë')
+    text = text.replace('&eacute;', 'é')
+    text = text.replace('&egrave;', 'è')
+    text = text.replace('&ouml;', 'ö')
+    text = text.replace('&uuml;', 'ü')
+    text = text.replace('&ccedil;', 'ç')
+    
+    # Clean up whitespace
+    text = re.sub(r'\n{3,}', '\n\n', text)  # Max 2 newlines
+    text = re.sub(r' +', ' ', text)  # Multiple spaces to single
+    text = '\n'.join(line.strip() for line in text.split('\n'))  # Strip each line
+    text = text.strip()
+    
+    return text
 
 SOURCE = "nvb"
 PROXY = os.environ.get("PROXY")
@@ -72,13 +113,13 @@ def normalize(raw):
         "id": raw.get("id"),
         "source": SOURCE,
         "title": raw.get("title") or raw.get("functionTitle"),
-        "description": raw.get("description"),
+        "description": clean_html(raw.get("description")),
         "media": [],
         
         "company": {
             "name": company.get("name"),
             "site": company.get("website"),
-            "logo": None,  # logos field has inconsistent format
+            "logo": None,
         },
         
         "apply": {
