@@ -143,11 +143,10 @@ async def scrape():
     
     # Step 1: Get all crebocodes
     print("\n[1] Fetching crebocodes...")
-    # tasks = [fetch_crebocodes(client, n) for n in range(5)]
-    # results = await asyncio.gather(*tasks)
-    # all_crebos = [item for sublist in results for item in sublist]
-    # print(f"  Total: {len(all_crebos)} crebocodes")
-    all_crebos = [(25181, "Niveau 1")]
+    tasks = [fetch_crebocodes(client, n) for n in range(5)]
+    results = await asyncio.gather(*tasks)
+    all_crebos = [item for sublist in results for item in sublist]
+    print(f"  Total: {len(all_crebos)} crebocodes")
     
     # Step 2: Get all internship IDs from API
     print("\n[2] Fetching all internship IDs from API...")

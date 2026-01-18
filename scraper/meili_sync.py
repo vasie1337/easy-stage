@@ -47,7 +47,10 @@ def setup_index(client):
             "attribute",
             "sort",
             "exactness"
-        ]
+        ],
+        "pagination": {
+            "maxTotalHits": 100000
+        }
     })
     
     return index
