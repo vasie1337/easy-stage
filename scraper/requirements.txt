@@ -1,2 +1,3 @@
 rnet
 psycopg2-binary
+meilisearch

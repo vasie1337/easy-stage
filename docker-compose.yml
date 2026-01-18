@@ -15,13 +15,32 @@ services:
     ports:
       - 5432:5432
 
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    environment:
+      MEILI_MASTER_KEY: masterkey123
+      MEILI_ENV: development
+    volumes:
+      - meilidata:/meili_data
+    ports:
+      - 7700:7700
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   scraper:
     build: ./scraper
     depends_on:
       postgres:
         condition: service_healthy
+      meilisearch:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgresql://stagemarkt:stagemarkt@postgres:5432/stagemarkt
+      MEILI_URL: http://meilisearch:7700
+      MEILI_MASTER_KEY: masterkey123
       PROXY: http://user-vasie_dDUVn:UG_d8SkA8NYGll@ddc.oxylabs.io:8001
     command: sh -c "python main.py && tail -f /dev/null"
     labels:
@@ -39,3 +58,4 @@ services:
 
 volumes:
   pgdata:
+  meilidata:

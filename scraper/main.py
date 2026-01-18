@@ -1,10 +1,11 @@
 """
 Main scraper runner
-Runs all platform scrapers sequentially
+Runs all platform scrapers, then syncs to Meilisearch
 """
 import asyncio
 import stagemarkt
 import nvb
+import meili_sync
 
 
 async def main():
@@ -13,11 +14,14 @@ async def main():
     print("=" * 60)
     
     # Run each scraper
-    # await stagemarkt.scrape()
+    await stagemarkt.scrape()
     await nvb.scrape()
     
+    # Sync to Meilisearch
+    meili_sync.sync()
+    
     print("\n" + "=" * 60)
-    print("ALL SCRAPERS COMPLETE!")
+    print("ALL COMPLETE!")
     print("=" * 60)
 
 
