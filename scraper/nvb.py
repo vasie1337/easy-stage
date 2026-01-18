@@ -166,6 +166,13 @@ async def fetch_with_retry(client, url, max_retries=10):
             if attempt == max_retries - 1:
                 print(f"  Failed after {max_retries} attempts: {url}")
                 raise
+            # Debug: show what we actually got
+            if attempt == 0:
+                try:
+                    preview = text[:200] if text else "(empty)"
+                    print(f"  Response preview: {preview}")
+                except:
+                    pass
             print(f"  Retry {attempt + 1}/{max_retries} (waiting {delay}s): {e}")
             await asyncio.sleep(delay)
             delay = min(delay * 2, 30)  # Exponential backoff, max 30s
