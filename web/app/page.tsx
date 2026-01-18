@@ -20,9 +20,6 @@ export default function Home() {
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
             Vind je perfecte stage
           </h1>
-          <p className="text-xl text-zinc-400 mb-10 leading-relaxed">
-            Doorzoek 130.000+ stages van Stagemarkt en Nationale Vacaturebank op één plek.
-          </p>
           <Link
             href="/stages"
             className="inline-flex items-center gap-2 px-8 py-4 bg-white text-zinc-900 font-semibold rounded-full hover:bg-zinc-200 transition-colors"
