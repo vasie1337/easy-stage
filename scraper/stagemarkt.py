@@ -6,8 +6,8 @@ import os
 import json
 import asyncio
 import rnet
-from db import setup_db, get_existing_ids, delete_ids, save_internship, get_connection
 from rnet.proxy import Proxy
+from db import setup_db, get_existing_ids, delete_ids, save_internship
 
 SOURCE = "stagemarkt"
 CONCURRENCY = 50
