@@ -7,6 +7,7 @@ import { Search, X, Filter, SearchX, Sparkles, Loader2 } from 'lucide-react'
 import { searchInternships, Internship, SearchFilters, SortOption, FacetDistribution } from '../lib/actions'
 import { InternshipCard } from '@/components/internship-card'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { AuthButton } from '@/components/auth-button'
 import { SearchSuggestions, saveRecentSearch } from '@/components/search-suggestions'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -227,11 +228,12 @@ function StagesContent() {
           <Link href="/" className="font-semibold">
             easystage.nl
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground hidden sm:inline">
               {totalHits.toLocaleString('nl-NL')} stages
             </span>
             <ThemeToggle />
+            <AuthButton />
           </div>
         </div>
       </header>
