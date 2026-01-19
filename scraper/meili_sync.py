@@ -24,21 +24,24 @@ def setup_index(client):
     index.update_settings({
         "searchableAttributes": [
             "title",
-            "description",
+            "description", 
             "keywords",
             "company_name",
-            "location_city"
+            "location_city",
+            "location_province"
         ],
         "filterableAttributes": [
             "level",
             "sublevel",
             "location_province",
             "location_city",
-            "source"
+            "source",
+            "keywords"
         ],
         "sortableAttributes": [
             "start_date",
-            "updated_at"
+            "updated_at",
+            "company_name"
         ],
         "rankingRules": [
             "words",
@@ -50,6 +53,18 @@ def setup_index(client):
         ],
         "pagination": {
             "maxTotalHits": 100000
+        },
+        # Enable faceting for filter counts
+        "faceting": {
+            "maxValuesPerFacet": 100
+        },
+        # Typo tolerance for better search
+        "typoTolerance": {
+            "enabled": True,
+            "minWordSizeForTypos": {
+                "oneTypo": 4,
+                "twoTypos": 8
+            }
         }
     })
     
