@@ -18,7 +18,7 @@ services:
   meilisearch:
     image: getmeili/meilisearch:v1.6
     environment:
-      MEILI_MASTER_KEY: masterkey123
+      MEILI_MASTER_KEY: masterkey123456
       MEILI_ENV: production
       MEILI_HTTP_ADDR: 0.0.0.0:7700
       MEILI_HTTP_CORS_ORIGIN: "*"
@@ -42,7 +42,7 @@ services:
     environment:
       DATABASE_URL: postgresql://stagemarkt:stagemarkt@postgres:5432/stagemarkt
       MEILI_URL: http://meilisearch:7700
-      MEILI_MASTER_KEY: masterkey123
+      MEILI_MASTER_KEY: masterkey123456
     command: sh -c "python main.py && tail -f /dev/null"
     labels:
       ofelia.enabled: "true"
