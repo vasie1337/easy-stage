@@ -12,7 +12,7 @@ const siteConfig = {
   name: "easystage.nl",
   description: "Vind je perfecte stage in Nederland. Doorzoek duizenden stages bij MBO, HBO en WO niveau. De slimste manier om je stageplek te vinden.",
   url: "https://easystage.nl",
-  ogImage: "https://easystage.nl/logo.png",
+  ogImage: "https://easystage.nl/logo_bg.png",
   keywords: [
     "stage",
     "stages",
