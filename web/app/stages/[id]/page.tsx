@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import type { Metadata } from "next"
 import { ArrowLeft, Calendar, Building2, Globe, Mail, ExternalLink } from "lucide-react"
 import { getInternshipById, getRelatedInternships } from "@/app/lib/actions"
 import { Badge } from "@/components/ui/badge"
@@ -20,6 +21,65 @@ const levelLabels: Record<string, string> = {
   mbo: 'MBO',
   hbo: 'HBO',
   wo: 'WO',
+}
+
+// Dynamic metadata for SEO
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const internship = await getInternshipById(id)
+
+  if (!internship) {
+    return {
+      title: "Stage niet gevonden",
+    }
+  }
+
+  const levelLabel = internship.level ? levelLabels[internship.level] || internship.level.toUpperCase() : ''
+  const location = [internship.location_city, internship.location_province].filter(Boolean).join(', ')
+  
+  const title = `${internship.title} bij ${internship.company_name}`
+  const description = `${levelLabel} stage bij ${internship.company_name}${location ? ` in ${location}` : ''}. ${internship.description?.slice(0, 150) || 'Bekijk deze stageplek en solliciteer direct.'}...`
+
+  return {
+    title,
+    description,
+    keywords: [
+      internship.title,
+      internship.company_name,
+      'stage',
+      levelLabel,
+      internship.location_city,
+      internship.location_province,
+      ...(internship.keywords || []),
+    ].filter(Boolean),
+    openGraph: {
+      title,
+      description,
+      type: "article",
+      url: `https://easystage.nl/stages/${id}`,
+      images: internship.media?.[0]?.url ? [
+        {
+          url: internship.media[0].url,
+          width: 800,
+          height: 600,
+          alt: internship.title,
+        }
+      ] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: internship.media?.[0]?.url ? [internship.media[0].url] : undefined,
+    },
+    alternates: {
+      canonical: `https://easystage.nl/stages/${id}`,
+    },
+  }
 }
 
 function formatDate(dateStr: string | null): string | null {
@@ -65,9 +125,45 @@ export default async function InternshipDetailPage({
     ? `mailto:${internship.apply_value}`
     : internship.apply_value
 
+  // JSON-LD structured data for search engines
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    title: internship.title,
+    description: internship.description || `Stage bij ${internship.company_name}`,
+    datePosted: internship.updated_at,
+    validThrough: internship.end_date,
+    employmentType: "INTERN",
+    hiringOrganization: {
+      "@type": "Organization",
+      name: internship.company_name,
+      sameAs: internship.company_site,
+    },
+    jobLocation: {
+      "@type": "Place",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: internship.location_street,
+        addressLocality: internship.location_city,
+        addressRegion: internship.location_province,
+        postalCode: internship.location_zip,
+        addressCountry: internship.location_country || "NL",
+      },
+    },
+    educationRequirements: internship.level ? {
+      "@type": "EducationalOccupationalCredential",
+      credentialCategory: levelLabels[internship.level] || internship.level.toUpperCase(),
+    } : undefined,
+  }
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <div className="min-h-screen bg-background">
+        {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center gap-4">
@@ -222,6 +318,7 @@ export default async function InternshipDetailPage({
           </div>
         )}
       </main>
-    </div>
+      </div>
+    </>
   )
 }

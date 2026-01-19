@@ -1,7 +1,27 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { ArrowLeft } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Logo } from '@/components/logo'
+
+export const metadata: Metadata = {
+  title: "Over ons",
+  description: "easystage.nl is de slimste manier om je stage te vinden. Wij verzamelen alle stages op één plek en matchen jou met de perfecte stageplek.",
+  openGraph: {
+    title: "Over ons | easystage.nl",
+    description: "De slimste manier om je stage te vinden in Nederland.",
+    url: "https://easystage.nl/about",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Over ons | easystage.nl",
+    description: "De slimste manier om je stage te vinden in Nederland.",
+  },
+  alternates: {
+    canonical: "https://easystage.nl/about",
+  },
+}
 
 const roadmap = [
   { title: 'Stage zoeken', desc: 'Doorzoek duizenden stages', status: 'done' },
