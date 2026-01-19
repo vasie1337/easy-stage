@@ -8,7 +8,7 @@ import meilisearch
 from db import get_connection
 
 MEILI_URL = os.environ.get("MEILI_URL", "http://localhost:7700")
-MEILI_MASTER_KEY = os.environ.get("MEILI_MASTER_KEY", "masterkey1234567")
+MEILI_MASTER_KEY = os.environ.get("MEILI_MASTER_KEY", "6daf6cf0f21a0662676c9eb287d4c7a25e82a367")
 INDEX_NAME = "internships"
 
 

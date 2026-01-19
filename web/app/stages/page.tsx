@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { searchInternships, Internship } from '../lib/meili'
+import { searchInternships, Internship } from '../lib/actions'
 
 const levelLabels: Record<string, string> = {
   mbo1: 'MBO 1',
@@ -32,7 +32,7 @@ export default function StagesPage() {
           60
         )
         setResults(res.hits)
-        setTotal((res as any).totalHits ?? res.estimatedTotalHits ?? res.hits.length)
+        setTotal(res.totalHits)
       } catch (err) {
         console.error(err)
         setResults([])
