@@ -80,6 +80,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: siteConfig.url,
   },
+  icons: {
+    icon: "/logo_bg.png",
+    apple: "/logo_bg.png",
+  },
   category: "education",
 }
 
