@@ -46,7 +46,7 @@ services:
     command: sh -c "python main.py && tail -f /dev/null"
     labels:
       ofelia.enabled: "true"
-      ofelia.job-exec.scraper.schedule: "0 0 * * * *"
+      ofelia.job-exec.scraper.schedule: "0 0 12 * * *"
       ofelia.job-exec.scraper.command: "python main.py"
 
   scheduler:
