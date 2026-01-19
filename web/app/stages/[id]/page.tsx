@@ -55,7 +55,7 @@ export async function generateMetadata({
       internship.location_city,
       internship.location_province,
       ...(internship.keywords || []),
-    ].filter(Boolean),
+    ].filter((k): k is string => Boolean(k)),
     openGraph: {
       title,
       description,
