@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, X, Filter, SearchX, Sparkles, Loader2 } from 'lucide-react'
+import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
 import { searchInternships, Internship, SearchFilters, SortOption, FacetDistribution } from '../lib/actions'
 import { InternshipCard } from '@/components/internship-card'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -227,11 +228,19 @@ function StagesContent() {
           <Link href="/" className="font-semibold">
             easystage.nl
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground hidden sm:inline">
               {totalHits.toLocaleString('nl-NL')} stages
             </span>
             <ThemeToggle />
+            <SignedIn>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
+            <SignedOut>
+              <Link href="/sign-in">
+                <Button variant="outline" size="sm">Inloggen</Button>
+              </Link>
+            </SignedOut>
           </div>
         </div>
       </header>
