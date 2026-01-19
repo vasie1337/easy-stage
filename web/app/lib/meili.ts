@@ -2,7 +2,7 @@ import { MeiliSearch } from 'meilisearch'
 
 export const meili = new MeiliSearch({
   host: process.env.NEXT_PUBLIC_MEILI_URL || 'http://46.224.211.168:7700',
-  apiKey: process.env.NEXT_PUBLIC_MEILI_KEY || 'masterkey123456',
+  apiKey: process.env.NEXT_PUBLIC_MEILI_KEY || 'masterkey1234567',
 })
 
 export const internshipsIndex = meili.index('internships')
