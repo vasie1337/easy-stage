@@ -126,9 +126,9 @@ def sync():
         task = index.add_documents(batch)
         print(f"  Batch {i // batch_size + 1}: {len(batch)} documents (task: {task.task_uid})")
     
-    # Wait for indexing to complete
+    # Wait for indexing to complete (10 min timeout for large datasets)
     print("\n[4] Waiting for indexing...")
-    client.wait_for_task(task.task_uid)
+    client.wait_for_task(task.task_uid, timeout_in_ms=600000, interval_in_ms=1000)
     
     # Get stats
     stats = index.get_stats()
