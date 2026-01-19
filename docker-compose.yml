@@ -19,11 +19,13 @@ services:
     image: getmeili/meilisearch:v1.6
     environment:
       MEILI_MASTER_KEY: masterkey123
-      MEILI_ENV: development
+      MEILI_ENV: production
+      MEILI_HTTP_ADDR: 0.0.0.0:7700
+      MEILI_HTTP_CORS_ORIGIN: "*"
     volumes:
       - meilidata:/meili_data
     ports:
-      - 7700:7700
+      - "0.0.0.0:7700:7700"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
       interval: 5s
