@@ -81,14 +81,6 @@ function formatDate(dateStr: string | null): string | null {
   }
 }
 
-function isNew(dateStr: string | null): boolean {
-  if (!dateStr) return false
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diffDays = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
-  return diffDays <= 7
-}
-
 export default async function InternshipDetailPage({
   params,
 }: {
@@ -102,7 +94,6 @@ export default async function InternshipDetailPage({
   }
 
   const relatedInternships = await getRelatedInternships(internship, 4)
-  const isNewListing = isNew(internship.updated_at)
 
   const startDate = formatDate(internship.start_date)
   const endDate = formatDate(internship.end_date)
@@ -172,11 +163,6 @@ export default async function InternshipDetailPage({
             {internship.level && (
               <Badge variant="secondary">
                 {levelLabels[internship.level] || internship.level.toUpperCase()}
-              </Badge>
-            )}
-            {isNewListing && (
-              <Badge className="bg-green-500 hover:bg-green-500 text-white">
-                Nieuw
               </Badge>
             )}
           </div>

@@ -19,14 +19,6 @@ interface InternshipCardProps {
   internship: Internship
 }
 
-function isNew(dateStr: string | null): boolean {
-  if (!dateStr) return false
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diffDays = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
-  return diffDays <= 7
-}
-
 function stripHtml(html: string): string {
   return html?.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim() || ''
 }
@@ -41,7 +33,6 @@ function getInitials(name: string): string {
 }
 
 export function InternshipCard({ internship }: InternshipCardProps) {
-  const isNewListing = isNew(internship.updated_at)
   const description = stripHtml(internship.description || '').slice(0, 120)
 
   return (
@@ -76,11 +67,6 @@ export function InternshipCard({ internship }: InternshipCardProps) {
                 <p className="text-sm text-muted-foreground truncate">
                   {internship.company_name}
                 </p>
-                {isNewListing && (
-                  <Badge variant="default" className="bg-green-500 hover:bg-green-500 text-white text-[10px] px-1.5 py-0">
-                    Nieuw
-                  </Badge>
-                )}
               </div>
               <h3 className="font-medium text-foreground line-clamp-1 group-hover:text-primary transition-colors">
                 {internship.title}
