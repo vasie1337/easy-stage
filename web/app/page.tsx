@@ -3,11 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, Sparkles } from 'lucide-react'
-import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/theme-toggle'
-import Link from 'next/link'
 
 export default function Home() {
   const router = useRouter()
@@ -26,17 +24,7 @@ export default function Home() {
       <header className="border-b">
         <div className="container flex h-14 items-center justify-between">
           <span className="font-semibold">easystage.nl</span>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <SignedIn>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
-            <SignedOut>
-              <Link href="/sign-in">
-                <Button variant="outline" size="sm">Inloggen</Button>
-              </Link>
-            </SignedOut>
-          </div>
+          <ThemeToggle />
         </div>
       </header>
 
