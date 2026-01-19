@@ -10,7 +10,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "StageZoeker - Vind je stage",
-  description: "Doorzoek duizenden stages van Stagemarkt en NVB",
+  description: "Doorzoek duizenden stages",
 }
 
 export default function RootLayout({

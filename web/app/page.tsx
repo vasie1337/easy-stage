@@ -20,10 +20,6 @@ export default function Home() {
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
             Vind je perfecte stage
           </h1>
-          <p className="text-lg text-muted-foreground mb-8">
-            Doorzoek stages van Stagemarkt en NVB. 
-            Filter op niveau, locatie en meer.
-          </p>
           <Button asChild size="lg">
             <Link href="/stages">
               <Search className="h-4 w-4 mr-2" />
@@ -32,13 +28,6 @@ export default function Home() {
           </Button>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t py-6">
-        <div className="container text-center text-sm text-muted-foreground">
-          Stages van Stagemarkt en Nationale Vacaturebank
-        </div>
-      </footer>
     </div>
   )
 }

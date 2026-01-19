@@ -52,7 +52,7 @@ def setup_index(client):
             "exactness"
         ],
         "pagination": {
-            "maxTotalHits": 100000
+            "maxTotalHits": 1000000
         },
         # Enable faceting for filter counts
         "faceting": {
