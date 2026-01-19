@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, MapPin, Calendar, Building2, Globe, Mail, ExternalLink } from "lucide-react"
+import { ArrowLeft, Calendar, Building2, Globe, Mail, ExternalLink } from "lucide-react"
 import { getInternshipById, getRelatedInternships } from "@/app/lib/actions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { MediaGallery } from "@/components/media-gallery"
 import { KeywordsSection } from "@/components/keywords-section"
 import { DescriptionSection } from "@/components/description-section"
 import { InternshipCard } from "@/components/internship-card"
+import { LocationCard } from "@/components/location-card"
 
 const levelLabels: Record<string, string> = {
   mbo1: 'MBO 1',
@@ -63,12 +64,6 @@ export default async function InternshipDetailPage({
     ? `mailto:${internship.apply_value}`
     : internship.apply_value
 
-  const mapsUrl = internship.location_lat && internship.location_lon
-    ? `https://www.google.com/maps?q=${internship.location_lat},${internship.location_lon}`
-    : `https://www.google.com/maps/search/${encodeURIComponent(
-        [internship.location_street, internship.location_zip, internship.location_city].filter(Boolean).join(', ')
-      )}`
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -114,26 +109,21 @@ export default async function InternshipDetailPage({
           <MediaGallery media={internship.media} />
         </div>
 
-        {/* Quick info */}
-        <div className="grid gap-4 sm:grid-cols-2 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
-          {/* Location */}
-          <a
-            href={mapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-start gap-3 p-4 rounded-lg border hover:bg-accent/50 transition-colors"
-          >
-            <MapPin className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium">Locatie</p>
-              <p className="text-sm text-muted-foreground">
-                {internship.location_street && <span>{internship.location_street}<br /></span>}
-                {internship.location_zip} {internship.location_city}
-                {internship.location_province && <span><br />{internship.location_province}</span>}
-              </p>
-            </div>
-          </a>
+        {/* Location Card */}
+        <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
+          <LocationCard
+            street={internship.location_street}
+            zip={internship.location_zip}
+            city={internship.location_city}
+            province={internship.location_province}
+            country={internship.location_country}
+            lat={internship.location_lat}
+            lon={internship.location_lon}
+          />
+        </div>
 
+        {/* Quick info */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
           {/* Dates */}
           {(startDate || endDate) && (
             <div className="flex items-start gap-3 p-4 rounded-lg border">
@@ -188,12 +178,12 @@ export default async function InternshipDetailPage({
         </div>
 
         {/* Keywords */}
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-[400ms]">
           <KeywordsSection keywords={internship.keywords} />
         </div>
 
         {/* Description */}
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-500">
           <DescriptionSection description={internship.description} />
         </div>
 
@@ -218,7 +208,7 @@ export default async function InternshipDetailPage({
 
         {/* Related Internships */}
         {relatedInternships.length > 0 && (
-          <div className="mt-16 pt-8 border-t animate-in fade-in slide-in-from-bottom-4 duration-500 delay-500">
+          <div className="mt-16 pt-8 border-t animate-in fade-in slide-in-from-bottom-4 duration-500 delay-[600ms]">
             <h2 className="text-xl font-semibold mb-4">Vergelijkbare stages</h2>
             <div className="space-y-2">
               {relatedInternships.map((related) => (
