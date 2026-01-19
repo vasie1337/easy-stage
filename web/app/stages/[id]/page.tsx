@@ -61,9 +61,9 @@ export async function generateMetadata({
       description,
       type: "article",
       url: `https://easystage.nl/stages/${id}`,
-      images: internship.media?.[0]?.url ? [
+      images: internship.media?.[0] ? [
         {
-          url: internship.media[0].url,
+          url: internship.media[0],
           width: 800,
           height: 600,
           alt: internship.title,
@@ -74,7 +74,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title,
       description,
-      images: internship.media?.[0]?.url ? [internship.media[0].url] : undefined,
+      images: internship.media?.[0] ? [internship.media[0]] : undefined,
     },
     alternates: {
       canonical: `https://easystage.nl/stages/${id}`,
