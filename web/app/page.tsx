@@ -1,15 +1,22 @@
-import Link from 'next/link'
-import { Search } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { getStats } from '@/app/lib/actions'
+'use client'
 
-export default async function Home() {
-  const stats = await getStats()
-  
-  const formatNumber = (num: number) => {
-    return num.toLocaleString('nl-NL')
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Search, Sparkles } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { ThemeToggle } from '@/components/theme-toggle'
+
+export default function Home() {
+  const router = useRouter()
+  const [query, setQuery] = useState('')
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    router.push(`/stages${query ? `?q=${encodeURIComponent(query)}` : ''}`)
   }
+
+  const popularSearches = ['Marketing', 'IT', 'Finance', 'Zorg', 'Techniek', 'HR']
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -22,41 +29,54 @@ export default async function Home() {
       </header>
 
       {/* Hero */}
-      <main className="flex-1 flex items-center justify-center">
-        <div className="container max-w-2xl text-center py-16">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
+      <main className="flex-1 flex items-center justify-center px-4">
+        <div className="w-full max-w-2xl text-center py-16">
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             Vind je perfecte stage
           </h1>
-          <p className="text-lg text-muted-foreground mb-8">
-            Doorzoek {formatNumber(stats.totalStages)} stages in heel Nederland
+          <p className="text-lg text-muted-foreground mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
+            Doorzoek duizenden stages in heel Nederland
           </p>
-          <Button asChild size="lg">
-            <Link href="/stages">
-              <Search className="h-4 w-4 mr-2" />
-              Start met zoeken
-            </Link>
-          </Button>
           
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-6 mt-16 pt-8 border-t">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-foreground">
-                {formatNumber(stats.totalStages)}
+          {/* Search Box */}
+          <form onSubmit={handleSearch} className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
+            <div className="relative flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Zoek op functie, bedrijf of stad..."
+                  className="h-12 pl-12 pr-4 text-base"
+                  autoFocus
+                />
               </div>
-              <div className="text-sm text-muted-foreground mt-1">Stages</div>
+              <Button type="submit" size="lg" className="h-12 px-6">
+                Zoeken
+              </Button>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-foreground">
-                {formatNumber(stats.totalCities)}
-              </div>
-              <div className="text-sm text-muted-foreground mt-1">Steden</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-foreground">
-                {stats.totalProvinces}
-              </div>
-              <div className="text-sm text-muted-foreground mt-1">Provincies</div>
-            </div>
+          </form>
+
+          {/* Popular searches */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+            <span className="text-sm text-muted-foreground">Populair:</span>
+            {popularSearches.map((term) => (
+              <button
+                key={term}
+                onClick={() => router.push(`/stages?q=${encodeURIComponent(term)}`)}
+                className="text-sm px-3 py-1 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+              >
+                {term}
+              </button>
+            ))}
+          </div>
+
+          {/* Browse all */}
+          <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400">
+            <Button variant="ghost" onClick={() => router.push('/stages')}>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Bekijk alle stages
+            </Button>
           </div>
         </div>
       </main>

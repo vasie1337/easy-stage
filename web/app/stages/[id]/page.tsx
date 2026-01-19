@@ -1,13 +1,14 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, MapPin, Calendar, Building2, Globe, Mail, ExternalLink } from "lucide-react"
-import { getInternshipById } from "@/app/lib/actions"
+import { getInternshipById, getRelatedInternships } from "@/app/lib/actions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { MediaGallery } from "@/components/media-gallery"
 import { KeywordsSection } from "@/components/keywords-section"
 import { DescriptionSection } from "@/components/description-section"
+import { InternshipCard } from "@/components/internship-card"
 
 const levelLabels: Record<string, string> = {
   mbo1: 'MBO 1',
@@ -32,6 +33,14 @@ function formatDate(dateStr: string | null): string | null {
   }
 }
 
+function isNew(dateStr: string | null): boolean {
+  if (!dateStr) return false
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffDays = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+  return diffDays <= 7
+}
+
 export default async function InternshipDetailPage({
   params,
 }: {
@@ -43,6 +52,9 @@ export default async function InternshipDetailPage({
   if (!internship) {
     notFound()
   }
+
+  const relatedInternships = await getRelatedInternships(internship, 4)
+  const isNewListing = isNew(internship.updated_at)
 
   const startDate = formatDate(internship.start_date)
   const endDate = formatDate(internship.end_date)
@@ -74,14 +86,19 @@ export default async function InternshipDetailPage({
 
       <main className="container py-8 max-w-3xl">
         {/* Title section */}
-        <div className="mb-8">
-          {internship.level && (
-            <div className="mb-2">
+        <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex items-center gap-2 mb-2">
+            {internship.level && (
               <Badge variant="secondary">
                 {levelLabels[internship.level] || internship.level.toUpperCase()}
               </Badge>
-            </div>
-          )}
+            )}
+            {isNewListing && (
+              <Badge className="bg-green-500 hover:bg-green-500 text-white">
+                Nieuw
+              </Badge>
+            )}
+          </div>
           
           <h1 className="text-2xl font-bold tracking-tight mb-2">
             {internship.title}
@@ -93,10 +110,12 @@ export default async function InternshipDetailPage({
         </div>
 
         {/* Media */}
-        <MediaGallery media={internship.media} />
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
+          <MediaGallery media={internship.media} />
+        </div>
 
         {/* Quick info */}
-        <div className="grid gap-4 sm:grid-cols-2 mb-8">
+        <div className="grid gap-4 sm:grid-cols-2 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
           {/* Location */}
           <a
             href={mapsUrl}
@@ -169,10 +188,14 @@ export default async function InternshipDetailPage({
         </div>
 
         {/* Keywords */}
-        <KeywordsSection keywords={internship.keywords} />
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+          <KeywordsSection keywords={internship.keywords} />
+        </div>
 
         {/* Description */}
-        <DescriptionSection description={internship.description} />
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400">
+          <DescriptionSection description={internship.description} />
+        </div>
 
         {/* Apply CTA */}
         <div className="sticky bottom-4 flex justify-center pt-4">
@@ -192,6 +215,18 @@ export default async function InternshipDetailPage({
             </a>
           </Button>
         </div>
+
+        {/* Related Internships */}
+        {relatedInternships.length > 0 && (
+          <div className="mt-16 pt-8 border-t animate-in fade-in slide-in-from-bottom-4 duration-500 delay-500">
+            <h2 className="text-xl font-semibold mb-4">Vergelijkbare stages</h2>
+            <div className="space-y-2">
+              {relatedInternships.map((related) => (
+                <InternshipCard key={related.id} internship={related} />
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )
