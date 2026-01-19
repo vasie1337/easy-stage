@@ -16,7 +16,7 @@ export default async function Home() {
       {/* Header */}
       <header className="border-b">
         <div className="container flex h-14 items-center justify-between">
-          <span className="font-semibold">StageZoeker</span>
+          <span className="font-semibold">easystage.nl</span>
           <ThemeToggle />
         </div>
       </header>

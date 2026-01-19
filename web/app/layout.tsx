@@ -9,7 +9,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "StageZoeker - Vind je stage",
+  title: "easystage.nl - Vind je stage",
   description: "Doorzoek duizenden stages",
 }
 
