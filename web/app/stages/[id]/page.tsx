@@ -75,17 +75,13 @@ export default async function InternshipDetailPage({
       <main className="container py-8 max-w-3xl">
         {/* Title section */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            <span className="capitalize">{internship.source}</span>
-            {internship.level && (
-              <>
-                <span>•</span>
-                <Badge variant="secondary">
-                  {levelLabels[internship.level] || internship.level.toUpperCase()}
-                </Badge>
-              </>
-            )}
-          </div>
+          {internship.level && (
+            <div className="mb-2">
+              <Badge variant="secondary">
+                {levelLabels[internship.level] || internship.level.toUpperCase()}
+              </Badge>
+            </div>
+          )}
           
           <h1 className="text-2xl font-bold tracking-tight mb-2">
             {internship.title}

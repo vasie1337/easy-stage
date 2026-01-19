@@ -34,7 +34,6 @@ function StagesContent() {
   const [query, setQuery] = useState(searchParams.get('q') || '')
   const [level, setLevel] = useState(searchParams.get('level') || '')
   const [province, setProvince] = useState(searchParams.get('province') || '')
-  const [source, setSource] = useState(searchParams.get('source') || '')
   const [sort, setSort] = useState<SortOption>((searchParams.get('sort') as SortOption) || 'relevance')
   const [page, setPage] = useState(Number(searchParams.get('page')) || 1)
   
@@ -50,13 +49,12 @@ function StagesContent() {
     if (query) params.set('q', query)
     if (level) params.set('level', level)
     if (province) params.set('province', province)
-    if (source) params.set('source', source)
     if (sort !== 'relevance') params.set('sort', sort)
     if (page > 1) params.set('page', String(page))
     
     const queryString = params.toString()
     router.replace(`/stages${queryString ? `?${queryString}` : ''}`, { scroll: false })
-  }, [query, level, province, source, sort, page, router])
+  }, [query, level, province, sort, page, router])
 
   // Search
   useEffect(() => {
@@ -66,7 +64,6 @@ function StagesContent() {
         const filters: SearchFilters = {}
         if (level) filters.level = level
         if (province) filters.province = province
-        if (source) filters.source = source
         
         const res = await searchInternships(query, filters, page, 20, sort)
         setResults(res.hits)
@@ -81,17 +78,16 @@ function StagesContent() {
       setLoading(false)
     }, 200)
     return () => clearTimeout(timer)
-  }, [query, level, province, source, sort, page])
+  }, [query, level, province, sort, page])
   
   const resetFilters = () => {
     setQuery('')
     setLevel('')
     setProvince('')
-    setSource('')
     setPage(1)
   }
 
-  const hasFilters = query || level || province || source
+  const hasFilters = query || level || province
 
   const sortedProvinces = Object.entries(facets.location_province || {}).sort((a, b) => b[1] - a[1])
 
@@ -159,17 +155,6 @@ function StagesContent() {
                   {value} ({count})
                 </SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={source} onValueChange={(v) => { setSource(v === 'all' ? '' : v); setPage(1) }}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Bron" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Alle bronnen</SelectItem>
-              <SelectItem value="stagemarkt">Stagemarkt</SelectItem>
-              <SelectItem value="nvb">NVB</SelectItem>
             </SelectContent>
           </Select>
 

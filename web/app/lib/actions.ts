@@ -109,3 +109,43 @@ export async function getInternshipById(id: string): Promise<Internship | null> 
     return null
   }
 }
+
+export interface Stats {
+  totalStages: number
+  totalCompanies: number
+  totalCities: number
+  totalProvinces: number
+  sourceBreakdown: Record<string, number>
+  levelBreakdown: Record<string, number>
+}
+
+export async function getStats(): Promise<Stats> {
+  try {
+    // Get total count and facets (only filterable attributes)
+    const res = await internshipsIndex.search('', {
+      limit: 0,
+      facets: ['source', 'level', 'location_city', 'location_province'],
+    })
+    
+    const facets = res.facetDistribution || {}
+    
+    return {
+      totalStages: res.estimatedTotalHits || 0,
+      totalCompanies: 0, // Not available as facet
+      totalCities: Object.keys(facets.location_city || {}).length,
+      totalProvinces: Object.keys(facets.location_province || {}).length,
+      sourceBreakdown: facets.source || {},
+      levelBreakdown: facets.level || {},
+    }
+  } catch (error) {
+    console.error('Failed to fetch stats:', error)
+    return {
+      totalStages: 0,
+      totalCompanies: 0,
+      totalCities: 0,
+      totalProvinces: 0,
+      sourceBreakdown: {},
+      levelBreakdown: {},
+    }
+  }
+}
