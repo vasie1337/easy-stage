@@ -67,32 +67,58 @@ LEVEL_MAP = {
 }
 
 
+STOPWORDS = {
+    'de', 'het', 'een', 'en', 'van', 'in', 'op', 'te', 'voor', 'met', 'aan',
+    'naar', 'om', 'bij', 'als', 'tot', 'uit', 'dat', 'die', 'zijn', 'worden',
+    'kan', 'moet', 'zal', 'zou', 'heeft', 'hebben', 'wordt', 'werd', 'zijn',
+    'was', 'waren', 'ben', 'bent', 'is', 'deze', 'dit', 'ook', 'meer', 'veel',
+    'not', 'nog', 'wel', 'dan', 'maar', 'over', 'door', 'onder', 'tussen',
+    'stage', 'stagiair', 'stagiaire', 'intern', 'internship',
+}
+
+def extract_single_keywords(text):
+    """Extract single-word keywords from text, filtering stopwords"""
+    if not text:
+        return []
+    
+    text = text.lower()
+    for sep in [',', '/', '-', '(', ')', '.', ':', ';', '&', '+']:
+        text = text.replace(sep, ' ')
+    
+    words = text.split()
+    return [
+        w for w in words
+        if 3 <= len(w) <= 25
+        and w not in STOPWORDS
+        and not w.isdigit()
+    ]
+
 def extract_keywords(raw):
     """Extract keywords from NVB data"""
     keywords = set()
     
-    # From dcoTitles
+    # From dcoTitles - extract words
     for dco in raw.get("dcoTitles") or []:
         if dco.get("title"):
-            keywords.add(dco["title"].lower())
+            keywords.update(extract_single_keywords(dco["title"]))
     
-    # From industries
+    # From industries - these are usually short, keep as-is if short
     for ind in raw.get("industries") or []:
-        keywords.add(ind.lower())
+        if ind and len(ind) <= 30:
+            keywords.add(ind.lower())
+        else:
+            keywords.update(extract_single_keywords(ind))
     
-    # From jobTitles
+    # From jobTitles - extract words  
     for jt in raw.get("jobTitles") or []:
-        keywords.add(jt.lower())
+        keywords.update(extract_single_keywords(jt))
     
-    # From categories
+    # From categories - usually short
     for cat in raw.get("categories") or []:
-        keywords.add(cat.lower())
+        if cat and len(cat) <= 25:
+            keywords.add(cat.lower())
     
-    # From functionTitle
-    if raw.get("functionTitle"):
-        keywords.add(raw["functionTitle"].lower())
-    
-    return [k for k in keywords if k and len(k) > 2]
+    return list(keywords)[:15]  # Max 15 keywords
 
 
 def normalize(raw):
@@ -114,7 +140,7 @@ def normalize(raw):
         "id": raw.get("id"),
         "source": SOURCE,
         "title": raw.get("title") or raw.get("functionTitle"),
-        "description": clean_html(raw.get("description")),
+        "description": raw.get("description"),  # Keep HTML, render on frontend
         "media": [],
         
         "company": {

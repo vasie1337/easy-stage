@@ -1,25 +1,35 @@
-import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import { ThemeProvider } from "@/components/theme-provider"
+import "./globals.css"
 
-const outfit = Outfit({ 
+const inter = Inter({ 
   subsets: ["latin"],
-  variable: '--font-outfit',
-});
+  variable: "--font-sans",
+})
 
 export const metadata: Metadata = {
-  title: "StageZoeker - Vind je perfecte stage",
-  description: "Doorzoek duizenden stages van Stagemarkt en NVB. Filter op niveau, locatie en meer.",
-};
+  title: "StageZoeker - Vind je stage",
+  description: "Doorzoek duizenden stages van Stagemarkt en NVB",
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
-    <html lang="nl" className="dark">
-      <body className={`${outfit.className} bg-[#0a0a0f] antialiased`}>{children}</body>
+    <html lang="nl" suppressHydrationWarning>
+      <body className={`${inter.className} antialiased`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
-  );
+  )
 }

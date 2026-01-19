@@ -25,33 +25,59 @@ LEVEL_MAP = {
     "Niveau 4": "mbo4",
 }
 
+STOPWORDS = {
+    'de', 'het', 'een', 'en', 'van', 'in', 'op', 'te', 'voor', 'met', 'aan',
+    'naar', 'om', 'bij', 'als', 'tot', 'uit', 'dat', 'die', 'zijn', 'worden',
+    'kan', 'moet', 'zal', 'zou', 'heeft', 'hebben', 'wordt', 'werd', 'zijn',
+    'was', 'waren', 'ben', 'bent', 'is', 'deze', 'dit', 'ook', 'meer', 'veel',
+    'niet', 'nog', 'wel', 'dan', 'maar', 'over', 'door', 'onder', 'tussen',
+    'binnen', 'buiten', 'achter', 'boven', 'beneden', 'zonder', 'tegen',
+    'tijdens', 'volgens', 'naast', 'langs', 'vanaf', 'rondom', 'mbt',
+}
+
+def extract_single_keywords(text):
+    """Extract single-word keywords from text, filtering stopwords"""
+    if not text:
+        return []
+    
+    # Clean and split
+    text = text.lower()
+    # Replace common separators with space
+    for sep in [',', '/', '-', '(', ')', '.', ':', ';', '&', '+']:
+        text = text.replace(sep, ' ')
+    
+    words = text.split()
+    
+    # Filter: 3-25 chars, not stopword, not all digits
+    return [
+        w for w in words
+        if 3 <= len(w) <= 25
+        and w not in STOPWORDS
+        and not w.isdigit()
+    ]
+
 def extract_keywords(raw):
     """Extract keywords from stagemarkt data"""
     keywords = set()
     
-    # From kerntaken
+    # From kerntaken - extract individual words
     for kt in raw.get("kerntaken", []):
         if kt.get("naam"):
-            keywords.add(kt["naam"].lower())
+            keywords.update(extract_single_keywords(kt["naam"]))
         for st in kt.get("subtaken", []):
             if st.get("naam"):
-                keywords.add(st["naam"].lower())
+                keywords.update(extract_single_keywords(st["naam"]))
     
-    # From kwalificatie
+    # From kwalificatie naam
     kwal = raw.get("kwalificatie", {})
-    if kwal.get("niveaunaam"):
-        keywords.add(kwal["niveaunaam"].lower())
+    if kwal.get("naam"):
+        keywords.update(extract_single_keywords(kwal["naam"]))
     
     # From vaardigheden
     if raw.get("vaardigheden"):
-        for v in raw["vaardigheden"].split(","):
-            keywords.add(v.strip().lower())
+        keywords.update(extract_single_keywords(raw["vaardigheden"]))
     
-    # From titel
-    if raw.get("titel"):
-        keywords.add(raw["titel"].lower())
-    
-    return [k for k in keywords if k and len(k) > 2]
+    return list(keywords)[:15]  # Max 15 keywords
 
 
 def normalize(raw):

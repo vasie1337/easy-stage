@@ -33,8 +33,6 @@ export interface Internship {
   start_date: string | null
   end_date: string | null
   updated_at: string
-  // Meilisearch highlighting
-  _formatted?: Partial<Internship>
 }
 
 export interface SearchFilters {
@@ -42,17 +40,15 @@ export interface SearchFilters {
   city?: string
   province?: string
   source?: string
-  keyword?: string
 }
 
-export type SortOption = 'relevance' | 'date_desc' | 'date_asc' | 'company_asc'
+export type SortOption = 'relevance' | 'date_desc' | 'date_asc' | 'company'
 
 export interface FacetDistribution {
   level?: Record<string, number>
   location_province?: Record<string, number>
   location_city?: Record<string, number>
   source?: Record<string, number>
-  keywords?: Record<string, number>
 }
 
 export interface SearchResult {
@@ -68,14 +64,14 @@ const sortMapping: Record<SortOption, string[]> = {
   relevance: [],
   date_desc: ['updated_at:desc'],
   date_asc: ['updated_at:asc'],
-  company_asc: ['company_name:asc'],
+  company: ['company_name:asc'],
 }
 
 export async function searchInternships(
   query: string,
   filters: SearchFilters = {},
   page: number = 1,
-  hitsPerPage: number = 24,
+  hitsPerPage: number = 20,
   sort: SortOption = 'relevance'
 ): Promise<SearchResult> {
   const filterArray: string[] = []
@@ -84,18 +80,13 @@ export async function searchInternships(
   if (filters.city) filterArray.push(`location_city = "${filters.city}"`)
   if (filters.province) filterArray.push(`location_province = "${filters.province}"`)
   if (filters.source) filterArray.push(`source = "${filters.source}"`)
-  if (filters.keyword) filterArray.push(`keywords = "${filters.keyword}"`)
   
   const res = await internshipsIndex.search<Internship>(query, {
     filter: filterArray.length > 0 ? filterArray.join(' AND ') : undefined,
     page,
     hitsPerPage,
     sort: sortMapping[sort],
-    facets: ['level', 'location_province', 'location_city', 'source', 'keywords'],
-    attributesToHighlight: ['title', 'description', 'company_name'],
-    highlightPreTag: '<mark>',
-    highlightPostTag: '</mark>',
-    showMatchesPosition: true,
+    facets: ['level', 'location_province', 'location_city', 'source'],
   })
   
   const totalHits = (res as any).totalHits ?? res.estimatedTotalHits ?? res.hits.length
