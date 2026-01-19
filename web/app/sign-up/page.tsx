@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Mail, Lock, Loader2, ArrowLeft, CheckCircle } from 'lucide-react'
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/theme-toggle'
 
-export default function SignUpPage() {
+function SignUpForm() {
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || ''
   const [error, setError] = useState<string | null>(null)
@@ -160,5 +160,17 @@ export default function SignUpPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    }>
+      <SignUpForm />
+    </Suspense>
   )
 }
