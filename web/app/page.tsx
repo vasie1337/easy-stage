@@ -10,6 +10,15 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { AuthButton } from '@/components/auth-button'
 import { Logo } from '@/components/logo'
 
+const sampleSearches = [
+  { label: 'Marketing', query: 'marketing' },
+  { label: 'Software Developer', query: 'software developer' },
+  { label: 'Amsterdam', query: 'amsterdam' },
+  { label: 'Grafisch ontwerp', query: 'grafisch ontwerp' },
+  { label: 'Finance', query: 'finance' },
+  { label: 'HR', query: 'hr' },
+]
+
 export default function Home() {
   const router = useRouter()
   const [query, setQuery] = useState('')
@@ -17,6 +26,10 @@ export default function Home() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     router.push(`/stages${query ? `?q=${encodeURIComponent(query)}` : ''}`)
+  }
+
+  const handleSampleSearch = (searchQuery: string) => {
+    router.push(`/stages?q=${encodeURIComponent(searchQuery)}`)
   }
 
   return (
@@ -62,9 +75,25 @@ export default function Home() {
             </div>
           </form>
 
+          {/* Sample searches */}
+          <div className="mt-6">
+            <p className="text-xs text-muted-foreground/60 mb-3">Populaire zoekopdrachten</p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {sampleSearches.map((search) => (
+                <button
+                  key={search.query}
+                  onClick={() => handleSampleSearch(search.query)}
+                  className="px-3 py-1.5 text-sm rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+                >
+                  {search.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <button
             onClick={() => router.push('/stages')}
-            className="mt-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="mt-6 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             bekijk alle stages →
           </button>
