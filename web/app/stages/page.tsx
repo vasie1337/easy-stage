@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
-import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, X, Filter, SearchX, Sparkles, Loader2 } from 'lucide-react'
 import { searchInternships, Internship, SearchFilters, SortOption, FacetDistribution } from '../lib/actions'
@@ -9,6 +8,7 @@ import { InternshipCard } from '@/components/internship-card'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { AuthButton } from '@/components/auth-button'
 import { SearchSuggestions, saveRecentSearch } from '@/components/search-suggestions'
+import { Logo } from '@/components/logo'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
@@ -225,9 +225,7 @@ function StagesContent() {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center justify-between">
-          <Link href="/" className="font-semibold">
-            easystage.nl
-          </Link>
+          <Logo />
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground hidden sm:inline">
               {totalHits.toLocaleString('nl-NL')} stages

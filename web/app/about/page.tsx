@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { Logo } from '@/components/logo'
 
 const roadmap = [
   { title: 'Stage zoeken', desc: 'Doorzoek duizenden stages', status: 'done' },
@@ -17,7 +18,7 @@ export default function AboutPage() {
         <div className="container flex h-14 items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" />
-            <span className="font-semibold text-foreground">easystage.nl</span>
+            <Logo size={28} href={undefined} />
           </Link>
           <ThemeToggle />
         </div>

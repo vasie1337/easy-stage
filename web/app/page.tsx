@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { AuthButton } from '@/components/auth-button'
+import { Logo } from '@/components/logo'
 
 export default function Home() {
   const router = useRouter()
@@ -23,7 +24,7 @@ export default function Home() {
       {/* Header */}
       <header className="border-b">
         <div className="container flex h-14 items-center justify-between">
-          <span className="font-semibold">easystage.nl</span>
+          <Logo />
           <div className="flex items-center gap-3">
             <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Over ons

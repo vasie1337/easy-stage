@@ -10,6 +10,7 @@ import { KeywordsSection } from "@/components/keywords-section"
 import { DescriptionSection } from "@/components/description-section"
 import { InternshipCard } from "@/components/internship-card"
 import { LocationCard } from "@/components/location-card"
+import { Logo } from "@/components/logo"
 
 const levelLabels: Record<string, string> = {
   mbo1: 'MBO 1',
@@ -75,7 +76,10 @@ export default async function InternshipDetailPage({
               <span className="hidden sm:inline">Terug naar zoeken</span>
             </Link>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-3">
+            <Logo size={28} />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
