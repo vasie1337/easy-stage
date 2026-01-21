@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next"
 import { Nunito } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
+import { ConvexClientProvider } from "@/components/convex-client-provider"
+import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server"
 import "./globals.css"
 
 const nunito = Nunito({ 
@@ -147,14 +149,18 @@ export default function RootLayout({
         />
       </head>
       <body className={`${nunito.className} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        <ConvexAuthNextjsServerProvider>
+          <ConvexClientProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
+          </ConvexClientProvider>
+        </ConvexAuthNextjsServerProvider>
       </body>
     </html>
   )

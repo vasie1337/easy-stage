@@ -1,35 +1,37 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, Suspense, useEffect } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
-import { Mail, Lock, Loader2, ArrowLeft } from 'lucide-react'
-import { signIn, signInWithGoogle } from '@/app/auth/actions'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Loader2, ArrowLeft } from 'lucide-react'
+import { useAuthActions } from '@convex-dev/auth/react'
+import { useConvexAuth } from 'convex/react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/theme-toggle'
 
 function SignInForm() {
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect') || ''
-  const [error, setError] = useState<string | null>(null)
+  const redirect = searchParams.get('redirect') || '/stages'
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [googleLoading, setGoogleLoading] = useState(false)
+  const { signIn } = useAuthActions()
+  const { isAuthenticated } = useConvexAuth()
 
-  async function handleSubmit(formData: FormData) {
-    setLoading(true)
-    setError(null)
-    formData.set('redirect', redirect)
-    const result = await signIn(formData)
-    if (result?.error) {
-      setError(result.error)
-      setLoading(false)
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push(redirect)
     }
-  }
+  }, [isAuthenticated, redirect, router])
 
   async function handleGoogleSignIn() {
-    setGoogleLoading(true)
-    await signInWithGoogle(redirect)
+    setLoading(true)
+    try {
+      await signIn("google", { redirectTo: redirect })
+    } catch (error) {
+      console.error('Sign in error:', error)
+      setLoading(false)
+    }
   }
 
   return (
@@ -51,64 +53,13 @@ function SignInForm() {
             <p className="text-muted-foreground mt-1">Log in om verder te gaan</p>
           </div>
 
-          {error && (
-            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-              {error}
-            </div>
-          )}
-
-          <form action={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  name="email"
-                  type="email"
-                  placeholder="E-mailadres"
-                  required
-                  className="pl-10"
-                />
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  name="password"
-                  type="password"
-                  placeholder="Wachtwoord"
-                  required
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Bezig...
-                </>
-              ) : (
-                'Inloggen'
-              )}
-            </Button>
-          </form>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">of</span>
-            </div>
-          </div>
-
           <Button
             variant="outline"
             className="w-full"
             onClick={handleGoogleSignIn}
-            disabled={googleLoading}
+            disabled={loading}
           >
-            {googleLoading ? (
+            {loading ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
@@ -135,7 +86,7 @@ function SignInForm() {
 
           <p className="text-center text-sm text-muted-foreground">
             Nog geen account?{' '}
-            <Link href={`/sign-up${redirect ? `?redirect=${redirect}` : ''}`} className="text-primary hover:underline">
+            <Link href={`/sign-up${redirect !== '/stages' ? `?redirect=${redirect}` : ''}`} className="text-primary hover:underline">
               Registreren
             </Link>
           </p>
