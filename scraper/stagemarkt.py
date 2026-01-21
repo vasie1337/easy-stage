@@ -80,7 +80,7 @@ def extract_keywords(raw):
     return list(keywords)[:15]  # Max 15 keywords
 
 
-def normalize(raw):
+def normalize(raw, internship_id=None):
     """Transform stagemarkt API response to unified schema"""
     adres = raw.get("adres") or {}
     coords = adres.get("coordinaten") or {}
@@ -88,7 +88,7 @@ def normalize(raw):
     kwal = raw.get("kwalificatie") or {}
     
     return {
-        "id": raw.get("id"),
+        "id": internship_id or raw.get("id"),
         "source": SOURCE,
         "title": raw.get("wervendeTitel") or raw.get("titel"),
         "description": raw.get("omschrijving"),
@@ -233,14 +233,25 @@ async def scrape():
         
         # Now save sequentially (avoids deadlocks)
         print(f"  Saving {len(results)} to database...")
+        saved = 0
+        skipped = 0
         for i, (internship_id, raw) in enumerate(results):
-            normalized = normalize(raw)
+            # Skip empty or invalid responses
+            if not raw or not isinstance(raw, dict):
+                skipped += 1
+                continue
+            normalized = normalize(raw, internship_id)
+            # Skip if no title (likely invalid data)
+            if not normalized.get("title"):
+                skipped += 1
+                continue
             save_internship(conn, normalized)
-            if (i + 1) % 1000 == 0:
+            saved += 1
+            if saved % 1000 == 0:
                 conn.commit()
-                print(f"  Saved: {i+1}/{len(results)}")
+                print(f"  Saved: {saved}/{len(results)}")
         conn.commit()
-        print(f"  Added {len(results)} new listings")
+        print(f"  Added {saved} new listings ({skipped} skipped)")
     else:
         print("\n[5] No new listings to add")
     
