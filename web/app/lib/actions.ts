@@ -3,8 +3,8 @@
 import { MeiliSearch } from 'meilisearch'
 
 const meili = new MeiliSearch({
-  host: process.env.MEILI_URL || 'http://46.224.211.168:7700',
-  apiKey: process.env.MEILI_KEY || '6daf6cf0f21a0662676c9eb287d4c7a25e82a367',
+  host: process.env.MEILI_URL as string,
+  apiKey: process.env.MEILI_KEY,
 })
 
 const internshipsIndex = meili.index('internships')
