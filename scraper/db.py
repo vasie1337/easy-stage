@@ -6,7 +6,6 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://stagemarkt:stagemark
 
 
 def get_connection():
-    print(DATABASE_URL)
     return psycopg2.connect(DATABASE_URL)
 
 
