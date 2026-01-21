@@ -7,7 +7,6 @@ import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { AuthButton } from '@/components/auth-button'
 import { Logo } from '@/components/logo'
 
 const sampleSearches = [
@@ -43,7 +42,6 @@ export default function Home() {
               Over ons
             </Link>
             <ThemeToggle />
-            <AuthButton />
           </div>
         </div>
       </header>

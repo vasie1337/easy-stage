@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react'
 interface LogoProps {
   size?: number
   showText?: boolean
-  href?: string
+  href?: string | null
 }
 
 export function Logo({ size = 32, showText = true, href = '/' }: LogoProps) {

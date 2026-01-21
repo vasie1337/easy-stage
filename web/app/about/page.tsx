@@ -38,7 +38,7 @@ export default function AboutPage() {
         <div className="container flex h-14 items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" />
-            <Logo size={28} href={undefined} />
+            <Logo size={28} href={null} />
           </Link>
           <ThemeToggle />
         </div>

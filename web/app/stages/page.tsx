@@ -6,7 +6,6 @@ import { Search, X, Filter, SearchX, Sparkles, Loader2 } from 'lucide-react'
 import { searchInternships, Internship, SearchFilters, SortOption, FacetDistribution } from '../lib/actions'
 import { InternshipCard } from '@/components/internship-card'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { AuthButton } from '@/components/auth-button'
 import { SearchSuggestions, saveRecentSearch } from '@/components/search-suggestions'
 import { Logo } from '@/components/logo'
 import { Input } from '@/components/ui/input'
@@ -231,7 +230,6 @@ function StagesContent() {
               {totalHits.toLocaleString('nl-NL')} stages
             </span>
             <ThemeToggle />
-            <AuthButton />
           </div>
         </div>
       </header>
