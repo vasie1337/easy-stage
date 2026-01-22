@@ -3,6 +3,7 @@
 import { MeiliSearch } from 'meilisearch'
 
 function getMeiliClient() {
+  console.log(process.env.MEILI_URL, process.env.MEILI_KEY)
   return new MeiliSearch({
     host: process.env.MEILI_URL || 'http://localhost:7700',
     apiKey: process.env.MEILI_KEY,
