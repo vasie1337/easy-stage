@@ -2,12 +2,16 @@
 
 import { MeiliSearch } from 'meilisearch'
 
-const meili = new MeiliSearch({
-  host: process.env.MEILI_URL as string,
-  apiKey: process.env.MEILI_KEY,
-})
+function getMeiliClient() {
+  return new MeiliSearch({
+    host: process.env.MEILI_URL || 'http://localhost:7700',
+    apiKey: process.env.MEILI_KEY,
+  })
+}
 
-const internshipsIndex = meili.index('internships')
+function getInternshipsIndex() {
+  return getMeiliClient().index('internships')
+}
 
 export interface Internship {
   id: string
@@ -81,7 +85,7 @@ export async function searchInternships(
   if (filters.province) filterArray.push(`location_province = "${filters.province}"`)
   if (filters.source) filterArray.push(`source = "${filters.source}"`)
   
-  const res = await internshipsIndex.search<Internship>(query, {
+  const res = await getInternshipsIndex().search<Internship>(query, {
     filter: filterArray.length > 0 ? filterArray.join(' AND ') : undefined,
     page,
     hitsPerPage,
@@ -103,7 +107,7 @@ export async function searchInternships(
 
 export async function getInternshipById(id: string): Promise<Internship | null> {
   try {
-    const doc = await internshipsIndex.getDocument<Internship>(id)
+    const doc = await getInternshipsIndex().getDocument<Internship>(id)
     return doc
   } catch {
     return null
@@ -135,7 +139,7 @@ export async function getRelatedInternships(
       .slice(0, 3)
       .join(' ') || ''
     
-    const res = await internshipsIndex.search<Internship>(titleWords, {
+    const res = await getInternshipsIndex().search<Internship>(titleWords, {
       filter: filterArray.length > 0 ? filterArray.join(' AND ') : undefined,
       limit: limit + 1, // Fetch one extra in case current internship is in results
     })
@@ -145,7 +149,7 @@ export async function getRelatedInternships(
     
     // If not enough results, try broader search
     if (hits.length < limit && internship.level) {
-      const broaderRes = await internshipsIndex.search<Internship>('', {
+      const broaderRes = await getInternshipsIndex().search<Internship>('', {
         filter: `level = "${internship.level}"`,
         limit: limit + 1,
       })
@@ -179,7 +183,7 @@ export interface Stats {
 export async function getStats(): Promise<Stats> {
   try {
     // Get total count and facets (only filterable attributes)
-    const res = await internshipsIndex.search('', {
+    const res = await getInternshipsIndex().search('', {
       limit: 0,
       facets: ['source', 'level', 'location_city', 'location_province'],
     })
