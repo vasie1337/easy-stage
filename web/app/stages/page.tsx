@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, X, Filter, SearchX, Sparkles, Loader2 } from 'lucide-react'
-import { searchInternships, Internship, SearchFilters, SortOption, FacetDistribution } from '../lib/actions'
+import { searchInternships, Internship, SearchFilters, SortOption, FacetDistribution } from '@/lib/meilisearch'
 import { InternshipCard } from '@/components/internship-card'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { SearchSuggestions, saveRecentSearch } from '@/components/search-suggestions'
