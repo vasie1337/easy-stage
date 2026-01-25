@@ -29,12 +29,6 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 # ENV NEXT_TELEMETRY_DISABLED=1
 
-# Public env vars must be set at build time for Next.js to embed them in client bundle
-ARG NEXT_PUBLIC_MEILI_URL
-ARG NEXT_PUBLIC_MEILI_SEARCH_KEY
-ENV NEXT_PUBLIC_MEILI_URL=$NEXT_PUBLIC_MEILI_URL
-ENV NEXT_PUBLIC_MEILI_SEARCH_KEY=$NEXT_PUBLIC_MEILI_SEARCH_KEY
-
 RUN \
   if [ -f yarn.lock ]; then yarn run build; \
   elif [ -f package-lock.json ]; then npm run build; \

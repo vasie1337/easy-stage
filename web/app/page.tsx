@@ -10,7 +10,7 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { Logo } from '@/components/logo'
 
 const sampleSearches = [
-  { label: 'Marketing', query: 'marketing' },
+  { label: 'test', query: 'marketing' },
   { label: 'Software Developer', query: 'software developer' },
   { label: 'Amsterdam', query: 'amsterdam' },
   { label: 'Grafisch ontwerp', query: 'grafisch ontwerp' },
