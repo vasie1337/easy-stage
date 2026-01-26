@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import { useTheme } from 'next-themes'
-import { searchInternships, type Internship, type SearchFilters } from '@/app/lib/actions'
+import { searchInternships, searchInternshipsGeo, type Internship, type SearchFilters, type GeoBounds } from '@/app/lib/actions'
 import { MapPopup } from '@/components/map-popup'
 import { Loader2 } from 'lucide-react'
 
@@ -26,6 +26,74 @@ interface MapViewProps {
   filters: SearchFilters
 }
 
+// Component to handle viewport-based loading when zoomed in
+function ViewportLoader({
+  query,
+  filters,
+  onMarkersLoaded,
+  onLoadingChange,
+}: {
+  query: string
+  filters: SearchFilters
+  onMarkersLoaded: (markers: Internship[], isViewportLoad: boolean) => void
+  onLoadingChange: (loading: boolean) => void
+}) {
+  const map = useMap()
+  const debounceRef = useRef<NodeJS.Timeout>(null)
+  const lastLoadRef = useRef<string>('')
+
+  const loadForViewport = useCallback(async () => {
+    const zoom = map.getZoom()
+    
+    // Only do viewport-based loading when zoomed in enough
+    if (zoom < 10) return
+    
+    const bounds = map.getBounds()
+    const loadKey = `${zoom}-${bounds.getNorth().toFixed(2)}-${bounds.getSouth().toFixed(2)}`
+    
+    // Skip if we already loaded for this viewport
+    if (loadKey === lastLoadRef.current) return
+    lastLoadRef.current = loadKey
+    
+    onLoadingChange(true)
+    
+    try {
+      const geoBounds: GeoBounds = {
+        north: bounds.getNorth(),
+        south: bounds.getSouth(),
+        east: bounds.getEast(),
+        west: bounds.getWest(),
+      }
+      
+      const result = await searchInternshipsGeo(query, filters, geoBounds, 1000)
+      
+      if (result.hits.length > 0) {
+        const markersWithCoords = result.hits.filter(
+          m => m.location_lat != null && m.location_lon != null
+        )
+        onMarkersLoaded(markersWithCoords, true)
+      }
+    } catch (err) {
+      console.error('Viewport load failed:', err)
+    }
+    
+    onLoadingChange(false)
+  }, [map, query, filters, onMarkersLoaded, onLoadingChange])
+
+  useMapEvents({
+    moveend: () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      debounceRef.current = setTimeout(loadForViewport, 400)
+    },
+    zoomend: () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      debounceRef.current = setTimeout(loadForViewport, 400)
+    },
+  })
+
+  return null
+}
+
 // Theme-aware tile layer
 function TileLayerWithTheme() {
   const { resolvedTheme } = useTheme()
@@ -35,7 +103,6 @@ function TileLayerWithTheme() {
     setMounted(true)
   }, [])
 
-  // Light: Stadia Alidade Smooth, Dark: Stadia Alidade Smooth Dark
   const tileUrl = mounted && resolvedTheme === 'dark'
     ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
     : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png'
@@ -66,48 +133,48 @@ function createClusterCustomIcon(cluster: any) {
 export function MapView({ query, filters }: MapViewProps) {
   const [markers, setMarkers] = useState<Internship[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
   const [totalHits, setTotalHits] = useState(0)
+  const [isViewportMode, setIsViewportMode] = useState(false)
 
-  // Load markers using regular search (more reliable than geo search)
-  const loadMarkers = useCallback(async () => {
+  // Initial load - get overview markers
+  const loadInitialMarkers = useCallback(async () => {
     setLoading(true)
-    setError(null)
     
     try {
-      // Use regular search with larger limit - clustering will handle display
       const result = await searchInternships(query, filters, 1, 1000, 'relevance')
       
-      // Filter to only markers with valid coordinates
       const markersWithCoords = result.hits.filter(
         m => m.location_lat != null && m.location_lon != null
       )
       
       setMarkers(markersWithCoords)
       setTotalHits(result.totalHits)
-      
-      if (markersWithCoords.length === 0 && result.hits.length > 0) {
-        setError('Stages gevonden, maar geen locatiedata beschikbaar')
-      }
+      setIsViewportMode(false)
     } catch (err) {
       console.error('Failed to load markers:', err)
-      setError('Kon stages niet laden')
     }
     
     setLoading(false)
   }, [query, filters])
 
+  // Handle viewport-loaded markers - simply replace with new results
+  const handleViewportMarkers = useCallback((newMarkers: Internship[], isViewportLoad: boolean) => {
+    if (isViewportLoad && newMarkers.length > 0) {
+      setMarkers(newMarkers)
+      setIsViewportMode(true)
+    }
+  }, [])
+
   // Initial load and reload on filter changes
   useEffect(() => {
-    loadMarkers()
-  }, [loadMarkers])
+    loadInitialMarkers()
+  }, [loadInitialMarkers])
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Don't render map on server
   if (!mounted) {
     return (
       <div className="h-[calc(100vh-180px)] min-h-[400px] rounded-lg border bg-muted flex items-center justify-center">
@@ -118,27 +185,21 @@ export function MapView({ query, filters }: MapViewProps) {
 
   return (
     <div className="relative h-[calc(100vh-180px)] min-h-[400px] rounded-lg border overflow-hidden">
-      {/* Loading indicator */}
       {loading && (
-        <div className="absolute top-4 right-4 z-[1000] bg-background/95 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-2 shadow-sm border">
+        <div className="absolute top-4 right-4 z-[1001] bg-background/95 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-2 shadow-sm border">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
           <span className="text-xs text-muted-foreground">Laden...</span>
         </div>
       )}
       
-      {/* Count badge */}
-      <div className="absolute top-4 left-4 z-[1000] bg-background/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm border">
+      <div className="absolute top-4 left-14 z-[1001] bg-background/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm border">
         <span className="text-xs font-medium">
-          {markers.length.toLocaleString('nl-NL')} van {totalHits.toLocaleString('nl-NL')} stages op kaart
+          {markers.length.toLocaleString('nl-NL')} stages
+          {!isViewportMode && totalHits > markers.length && (
+            <span className="text-muted-foreground"> (zoom in voor meer)</span>
+          )}
         </span>
       </div>
-
-      {/* Error message */}
-      {error && (
-        <div className="absolute top-14 left-4 z-[1000] bg-destructive/10 text-destructive rounded-md px-3 py-2 text-xs max-w-[220px]">
-          {error}
-        </div>
-      )}
 
       <MapContainer
         center={NL_CENTER}
@@ -150,6 +211,12 @@ export function MapView({ query, filters }: MapViewProps) {
         zoomControl={true}
       >
         <TileLayerWithTheme />
+        <ViewportLoader
+          query={query}
+          filters={filters}
+          onMarkersLoaded={handleViewportMarkers}
+          onLoadingChange={setLoading}
+        />
         <MarkerClusterGroup
           chunkedLoading
           iconCreateFunction={createClusterCustomIcon}

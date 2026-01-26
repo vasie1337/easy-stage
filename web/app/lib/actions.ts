@@ -126,8 +126,8 @@ export async function searchInternshipsGeo(
   const filterArray: string[] = []
   
   // Add geo bounding box filter
-  // Meilisearch format: _geoBoundingBox([lat_top_left, lng_top_left], [lat_bottom_right, lng_bottom_right])
-  filterArray.push(`_geoBoundingBox([${bounds.north}, ${bounds.west}], [${bounds.south}, ${bounds.east}])`)
+  // Meilisearch format: _geoBoundingBox([topRightLat, topRightLng], [bottomLeftLat, bottomLeftLng])
+  filterArray.push(`_geoBoundingBox([${bounds.north}, ${bounds.east}], [${bounds.south}, ${bounds.west}])`)
   
   // Add other filters
   if (filters.level) filterArray.push(`level = "${filters.level}"`)
