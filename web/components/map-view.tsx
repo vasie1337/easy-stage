@@ -1,35 +1,24 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
+import { useEffect, useState, useCallback } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import { useTheme } from 'next-themes'
-import { searchInternshipsGeo, type Internship, type SearchFilters, type GeoBounds } from '@/app/lib/actions'
-import { MapPopup } from './map-popup'
+import { searchInternships, type Internship, type SearchFilters } from '@/app/lib/actions'
+import { MapPopup } from '@/components/map-popup'
 import { Loader2 } from 'lucide-react'
 
-// Fix Leaflet default marker icon issue
-const defaultIcon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
+// Custom marker icon - cleaner dot style
+const defaultIcon = L.divIcon({
+  html: `<div class="map-marker"></div>`,
+  className: 'custom-marker-wrapper',
+  iconSize: [12, 12],
+  iconAnchor: [6, 6],
+  popupAnchor: [0, -8],
 })
 
-L.Marker.prototype.options.icon = defaultIcon
-
 // Netherlands bounds
-const NL_BOUNDS: GeoBounds = {
-  north: 53.6,
-  south: 50.7,
-  east: 7.3,
-  west: 3.3,
-}
-
 const NL_CENTER: [number, number] = [52.1326, 5.2913]
 
 interface MapViewProps {
@@ -37,87 +26,21 @@ interface MapViewProps {
   filters: SearchFilters
 }
 
-// Component to handle map events and data loading
-function MapEventHandler({
-  query,
-  filters,
-  onMarkersUpdate,
-  onLoadingChange,
-}: {
-  query: string
-  filters: SearchFilters
-  onMarkersUpdate: (markers: Internship[]) => void
-  onLoadingChange: (loading: boolean) => void
-}) {
-  const map = useMap()
-  const debounceRef = useRef<NodeJS.Timeout>(null)
-  const lastBoundsRef = useRef<string>('')
-
-  const loadMarkers = useCallback(async () => {
-    const bounds = map.getBounds()
-    const boundsKey = `${bounds.getNorth()}-${bounds.getSouth()}-${bounds.getEast()}-${bounds.getWest()}`
-    
-    // Skip if bounds haven't changed significantly
-    if (boundsKey === lastBoundsRef.current) return
-    lastBoundsRef.current = boundsKey
-
-    onLoadingChange(true)
-    
-    const geoBounds: GeoBounds = {
-      north: bounds.getNorth(),
-      south: bounds.getSouth(),
-      east: bounds.getEast(),
-      west: bounds.getWest(),
-    }
-
-    const result = await searchInternshipsGeo(query, filters, geoBounds, 500)
-    onMarkersUpdate(result.hits)
-    onLoadingChange(false)
-  }, [map, query, filters, onMarkersUpdate, onLoadingChange])
-
-  // Initial load
-  useEffect(() => {
-    loadMarkers()
-  }, [loadMarkers])
-
-  // Listen for map events
-  useMapEvents({
-    moveend: () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-      debounceRef.current = setTimeout(loadMarkers, 300)
-    },
-    zoomend: () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-      debounceRef.current = setTimeout(loadMarkers, 300)
-    },
-  })
-
-  // Reload when filters change
-  useEffect(() => {
-    loadMarkers()
-  }, [query, filters.level, filters.province, loadMarkers])
-
-  return null
-}
-
 // Theme-aware tile layer
 function TileLayerWithTheme() {
   const { resolvedTheme } = useTheme()
-  const map = useMap()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Light mode: OpenStreetMap, Dark mode: CartoDB Dark Matter
+  // Light: Stadia Alidade Smooth, Dark: Stadia Alidade Smooth Dark
   const tileUrl = mounted && resolvedTheme === 'dark'
-    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+    ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
+    : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png'
 
-  const attribution = mounted && resolvedTheme === 'dark'
-    ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-    : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  const attribution = '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OSM</a>'
 
   return <TileLayer url={tileUrl} attribution={attribution} />
 }
@@ -125,28 +48,60 @@ function TileLayerWithTheme() {
 // Custom cluster icon
 function createClusterCustomIcon(cluster: any) {
   const count = cluster.getChildCount()
-  let size = 'small'
-  let dimensions = 30
-
+  let sizeClass = 'small'
+  
   if (count >= 100) {
-    size = 'large'
-    dimensions = 50
-  } else if (count >= 10) {
-    size = 'medium'
-    dimensions = 40
+    sizeClass = 'large'
+  } else if (count >= 20) {
+    sizeClass = 'medium'
   }
 
   return L.divIcon({
-    html: `<div class="cluster-icon cluster-${size}">${count}</div>`,
-    className: 'custom-cluster-icon',
-    iconSize: L.point(dimensions, dimensions, true),
+    html: `<div class="map-cluster map-cluster-${sizeClass}"><span>${count >= 1000 ? Math.floor(count / 1000) + 'k' : count}</span></div>`,
+    className: 'map-cluster-wrapper',
+    iconSize: L.point(40, 40, true),
   })
 }
 
 export function MapView({ query, filters }: MapViewProps) {
   const [markers, setMarkers] = useState<Internship[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [totalHits, setTotalHits] = useState(0)
+
+  // Load markers using regular search (more reliable than geo search)
+  const loadMarkers = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      // Use regular search with larger limit - clustering will handle display
+      const result = await searchInternships(query, filters, 1, 1000, 'relevance')
+      
+      // Filter to only markers with valid coordinates
+      const markersWithCoords = result.hits.filter(
+        m => m.location_lat != null && m.location_lon != null
+      )
+      
+      setMarkers(markersWithCoords)
+      setTotalHits(result.totalHits)
+      
+      if (markersWithCoords.length === 0 && result.hits.length > 0) {
+        setError('Stages gevonden, maar geen locatiedata beschikbaar')
+      }
+    } catch (err) {
+      console.error('Failed to load markers:', err)
+      setError('Kon stages niet laden')
+    }
+    
+    setLoading(false)
+  }, [query, filters])
+
+  // Initial load and reload on filter changes
+  useEffect(() => {
+    loadMarkers()
+  }, [loadMarkers])
 
   useEffect(() => {
     setMounted(true)
@@ -163,55 +118,59 @@ export function MapView({ query, filters }: MapViewProps) {
 
   return (
     <div className="relative h-[calc(100vh-180px)] min-h-[400px] rounded-lg border overflow-hidden">
+      {/* Loading indicator */}
       {loading && (
-        <div className="absolute top-4 right-4 z-[1000] bg-background/90 backdrop-blur rounded-md px-3 py-2 flex items-center gap-2 shadow-md">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="text-sm">Laden...</span>
+        <div className="absolute top-4 right-4 z-[1000] bg-background/95 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-2 shadow-sm border">
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">Laden...</span>
         </div>
       )}
       
-      <div className="absolute top-4 left-4 z-[1000] bg-background/90 backdrop-blur rounded-md px-3 py-2 shadow-md">
-        <span className="text-sm font-medium">{markers.length} stages in beeld</span>
+      {/* Count badge */}
+      <div className="absolute top-4 left-4 z-[1000] bg-background/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm border">
+        <span className="text-xs font-medium">
+          {markers.length.toLocaleString('nl-NL')} van {totalHits.toLocaleString('nl-NL')} stages op kaart
+        </span>
       </div>
+
+      {/* Error message */}
+      {error && (
+        <div className="absolute top-14 left-4 z-[1000] bg-destructive/10 text-destructive rounded-md px-3 py-2 text-xs max-w-[220px]">
+          {error}
+        </div>
+      )}
 
       <MapContainer
         center={NL_CENTER}
         zoom={8}
         className="h-full w-full"
         scrollWheelZoom={true}
-        maxBounds={[
-          [NL_BOUNDS.south - 1, NL_BOUNDS.west - 1],
-          [NL_BOUNDS.north + 1, NL_BOUNDS.east + 1],
-        ]}
-        minZoom={6}
+        minZoom={7}
+        maxZoom={18}
+        zoomControl={true}
       >
         <TileLayerWithTheme />
-        <MapEventHandler
-          query={query}
-          filters={filters}
-          onMarkersUpdate={setMarkers}
-          onLoadingChange={setLoading}
-        />
         <MarkerClusterGroup
           chunkedLoading
           iconCreateFunction={createClusterCustomIcon}
-          maxClusterRadius={60}
+          maxClusterRadius={50}
           spiderfyOnMaxZoom={true}
           showCoverageOnHover={false}
-          animate={true}
+          animate={false}
+          disableClusteringAtZoom={15}
+          removeOutsideVisibleBounds={true}
         >
-          {markers
-            .filter(m => m.location_lat && m.location_lon)
-            .map(internship => (
-              <Marker
-                key={internship.id}
-                position={[internship.location_lat!, internship.location_lon!]}
-              >
-                <Popup className="map-popup" maxWidth={320} minWidth={280}>
-                  <MapPopup internship={internship} />
-                </Popup>
-              </Marker>
-            ))}
+          {markers.map(internship => (
+            <Marker
+              key={internship.id}
+              position={[internship.location_lat!, internship.location_lon!]}
+              icon={defaultIcon}
+            >
+              <Popup className="map-popup" maxWidth={300} minWidth={260}>
+                <MapPopup internship={internship} />
+              </Popup>
+            </Marker>
+          ))}
         </MarkerClusterGroup>
       </MapContainer>
     </div>
