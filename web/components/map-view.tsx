@@ -50,7 +50,7 @@ function MapEventHandler({
   onLoadingChange: (loading: boolean) => void
 }) {
   const map = useMap()
-  const debounceRef = useRef<NodeJS.Timeout>()
+  const debounceRef = useRef<NodeJS.Timeout>(null)
   const lastBoundsRef = useRef<string>('')
 
   const loadMarkers = useCallback(async () => {
