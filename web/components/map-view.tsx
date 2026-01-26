@@ -65,7 +65,7 @@ function ViewportLoader({
         west: bounds.getWest(),
       }
       
-      const result = await searchInternshipsGeo(query, filters, geoBounds, 1000)
+      const result = await searchInternshipsGeo(query, filters, geoBounds, 500)
       
       if (result.hits.length > 0) {
         const markersWithCoords = result.hits.filter(
@@ -137,12 +137,13 @@ export function MapView({ query, filters }: MapViewProps) {
   const [totalHits, setTotalHits] = useState(0)
   const [isViewportMode, setIsViewportMode] = useState(false)
 
-  // Initial load - get overview markers
+  // Initial load - get overview markers (reduced for performance when zoomed out)
   const loadInitialMarkers = useCallback(async () => {
     setLoading(true)
     
     try {
-      const result = await searchInternships(query, filters, 1, 1000, 'relevance')
+      // Load fewer markers for overview - viewport loading will get more when zoomed in
+      const result = await searchInternships(query, filters, 1, 400, 'relevance')
       
       const markersWithCoords = result.hits.filter(
         m => m.location_lat != null && m.location_lon != null
@@ -192,15 +193,6 @@ export function MapView({ query, filters }: MapViewProps) {
         </div>
       )}
       
-      <div className="absolute top-4 left-14 z-[1001] bg-background/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm border">
-        <span className="text-xs font-medium">
-          {markers.length.toLocaleString('nl-NL')} stages
-          {!isViewportMode && totalHits > markers.length && (
-            <span className="text-muted-foreground"> (zoom in voor meer)</span>
-          )}
-        </span>
-      </div>
-
       <MapContainer
         center={NL_CENTER}
         zoom={8}
@@ -219,13 +211,16 @@ export function MapView({ query, filters }: MapViewProps) {
         />
         <MarkerClusterGroup
           chunkedLoading
+          chunkInterval={100}
+          chunkDelay={50}
           iconCreateFunction={createClusterCustomIcon}
-          maxClusterRadius={50}
+          maxClusterRadius={80}
           spiderfyOnMaxZoom={true}
           showCoverageOnHover={false}
           animate={false}
-          disableClusteringAtZoom={15}
+          disableClusteringAtZoom={14}
           removeOutsideVisibleBounds={true}
+          zoomToBoundsOnClick={true}
         >
           {markers.map(internship => (
             <Marker
