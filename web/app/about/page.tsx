@@ -25,6 +25,7 @@ export const metadata: Metadata = {
 
 const roadmap = [
   { title: 'Stage zoeken', desc: 'Doorzoek duizenden stages', status: 'done' },
+  { title: 'Kaartweergave', desc: 'Bekijk stages op de kaart', status: 'done' },
   { title: 'Stage alerts', desc: 'Notificaties voor nieuwe stages', status: 'next' },
   { title: 'CV builder', desc: 'Bouw je CV met AI', status: 'soon' },
   { title: 'Auto-sollicitatie', desc: 'Solliciteer automatisch', status: 'soon' },
