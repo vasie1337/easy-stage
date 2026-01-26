@@ -94,7 +94,7 @@ function ViewportLoader({
   return null
 }
 
-// Theme-aware tile layer
+// Theme-aware tile layer (free tiles, no API key needed)
 function TileLayerWithTheme() {
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -103,11 +103,14 @@ function TileLayerWithTheme() {
     setMounted(true)
   }, [])
 
+  // Light: OpenStreetMap, Dark: CartoDB Dark Matter (both free, no API key)
   const tileUrl = mounted && resolvedTheme === 'dark'
-    ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
-    : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png'
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 
-  const attribution = '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OSM</a>'
+  const attribution = mounted && resolvedTheme === 'dark'
+    ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 
   return <TileLayer url={tileUrl} attribution={attribution} />
 }
