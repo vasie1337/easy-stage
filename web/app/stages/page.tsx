@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
+import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Search, X, Filter, SearchX, Sparkles, Loader2 } from 'lucide-react'
+import { Search, X, Filter, SearchX, Sparkles, Loader2, List, Map } from 'lucide-react'
 import { searchInternships, Internship, SearchFilters, SortOption, FacetDistribution } from '../lib/actions'
 import { InternshipCard } from '@/components/internship-card'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -25,6 +25,19 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 
+// Dynamic import for MapView (Leaflet doesn't work with SSR)
+import dynamic from 'next/dynamic'
+const MapView = dynamic(() => import('@/components/map-view').then(mod => ({ default: mod.MapView })), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[calc(100vh-180px)] min-h-[400px] rounded-lg border bg-muted flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  ),
+})
+
+type ViewMode = 'list' | 'map'
+
 const levelLabels: Record<string, string> = {
   mbo1: 'MBO 1',
   mbo2: 'MBO 2',
@@ -43,6 +56,7 @@ function StagesContent() {
   const [level, setLevel] = useState(searchParams.get('level') || '')
   const [province, setProvince] = useState(searchParams.get('province') || '')
   const [sort, setSort] = useState<SortOption>((searchParams.get('sort') as SortOption) || 'relevance')
+  const [viewMode, setViewMode] = useState<ViewMode>((searchParams.get('view') as ViewMode) || 'list')
   
   const [results, setResults] = useState<Internship[]>([])
   const [totalHits, setTotalHits] = useState(0)
@@ -77,10 +91,11 @@ function StagesContent() {
     if (level) params.set('level', level)
     if (province) params.set('province', province)
     if (sort !== 'relevance') params.set('sort', sort)
+    if (viewMode !== 'list') params.set('view', viewMode)
     
     const queryString = params.toString()
     router.replace(`/stages${queryString ? `?${queryString}` : ''}`, { scroll: false })
-  }, [query, level, province, sort, router])
+  }, [query, level, province, sort, viewMode, router])
 
   // Initial search
   useEffect(() => {
@@ -166,6 +181,34 @@ function StagesContent() {
     searchInputRef.current?.blur()
   }
 
+  // View toggle buttons
+  const ViewToggle = () => (
+    <div className="flex rounded-lg border bg-muted p-1">
+      <button
+        onClick={() => setViewMode('list')}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+          viewMode === 'list'
+            ? 'bg-background text-foreground shadow-sm'
+            : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        <List className="h-4 w-4" />
+        <span className="hidden sm:inline">Lijst</span>
+      </button>
+      <button
+        onClick={() => setViewMode('map')}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+          viewMode === 'map'
+            ? 'bg-background text-foreground shadow-sm'
+            : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        <Map className="h-4 w-4" />
+        <span className="hidden sm:inline">Kaart</span>
+      </button>
+    </div>
+  )
+
   // Filter controls (shared between desktop and mobile)
   const FilterControls = ({ mobile = false }: { mobile?: boolean }) => (
     <div className={mobile ? 'space-y-4 p-4' : 'flex flex-wrap items-center gap-3'}>
@@ -199,22 +242,34 @@ function StagesContent() {
 
       {!mobile && <div className="flex-1" />}
 
-      <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
-        <SelectTrigger className={mobile ? 'w-full' : 'w-[150px]'}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="relevance">Relevantie</SelectItem>
-          <SelectItem value="date_desc">Nieuwste eerst</SelectItem>
-          <SelectItem value="date_asc">Oudste eerst</SelectItem>
-          <SelectItem value="company">Bedrijf A-Z</SelectItem>
-        </SelectContent>
-      </Select>
+      {!mobile && <ViewToggle />}
 
-      {mobile && hasFilters && (
-        <Button variant="outline" onClick={resetFilters} className="w-full">
-          Filters wissen
-        </Button>
+      {viewMode === 'list' && (
+        <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
+          <SelectTrigger className={mobile ? 'w-full' : 'w-[150px]'}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="relevance">Relevantie</SelectItem>
+            <SelectItem value="date_desc">Nieuwste eerst</SelectItem>
+            <SelectItem value="date_asc">Oudste eerst</SelectItem>
+            <SelectItem value="company">Bedrijf A-Z</SelectItem>
+          </SelectContent>
+        </Select>
+      )}
+
+      {mobile && (
+        <>
+          <div className="pt-2">
+            <p className="text-sm font-medium mb-2">Weergave</p>
+            <ViewToggle />
+          </div>
+          {hasFilters && (
+            <Button variant="outline" onClick={resetFilters} className="w-full">
+              Filters wissen
+            </Button>
+          )}
+        </>
       )}
     </div>
   )
@@ -301,7 +356,12 @@ function StagesContent() {
         </div>
 
         {/* Results */}
-        {loading ? (
+        {viewMode === 'map' ? (
+          <MapView 
+            query={query} 
+            filters={{ level: level || undefined, province: province || undefined }} 
+          />
+        ) : loading ? (
           <div className="space-y-2">
             {Array.from({ length: 10 }).map((_, i) => (
               <div key={i} className="h-24 rounded-lg border bg-muted/50 animate-pulse" />

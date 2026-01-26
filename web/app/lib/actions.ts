@@ -105,6 +105,59 @@ export async function searchInternships(
   }
 }
 
+export interface GeoBounds {
+  north: number
+  south: number
+  east: number
+  west: number
+}
+
+export interface GeoSearchResult {
+  hits: Internship[]
+  totalHits: number
+}
+
+export async function searchInternshipsGeo(
+  query: string,
+  filters: SearchFilters = {},
+  bounds: GeoBounds,
+  limit: number = 500
+): Promise<GeoSearchResult> {
+  const filterArray: string[] = []
+  
+  // Add geo bounding box filter
+  // Meilisearch format: _geoBoundingBox([lat_top_left, lng_top_left], [lat_bottom_right, lng_bottom_right])
+  filterArray.push(`_geoBoundingBox([${bounds.north}, ${bounds.west}], [${bounds.south}, ${bounds.east}])`)
+  
+  // Add other filters
+  if (filters.level) filterArray.push(`level = "${filters.level}"`)
+  if (filters.city) filterArray.push(`location_city = "${filters.city}"`)
+  if (filters.province) filterArray.push(`location_province = "${filters.province}"`)
+  if (filters.source) filterArray.push(`source = "${filters.source}"`)
+  
+  try {
+    const res = await getInternshipsIndex().search<Internship>(query, {
+      filter: filterArray.join(' AND '),
+      limit,
+      attributesToRetrieve: [
+        'id', 'title', 'company_name', 'company_logo',
+        'location_city', 'location_province', 'location_lat', 'location_lon',
+        'level'
+      ],
+    })
+    
+    const totalHits = (res as any).totalHits ?? res.estimatedTotalHits ?? res.hits.length
+    
+    return {
+      hits: res.hits,
+      totalHits,
+    }
+  } catch (error) {
+    console.error('Geo search failed:', error)
+    return { hits: [], totalHits: 0 }
+  }
+}
+
 export async function getInternshipById(id: string): Promise<Internship | null> {
   try {
     const doc = await getInternshipsIndex().getDocument<Internship>(id)

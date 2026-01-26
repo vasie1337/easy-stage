@@ -36,7 +36,8 @@ def setup_index(client):
             "location_province",
             "location_city",
             "source",
-            "keywords"
+            "keywords",
+            "_geo"
         ],
         "sortableAttributes": [
             "start_date",
@@ -100,6 +101,12 @@ def fetch_all_internships(conn):
         # Convert timestamps to strings
         if doc.get("updated_at"):
             doc["updated_at"] = doc["updated_at"].isoformat()
+        # Add _geo field for Meilisearch geo-search
+        if doc.get("location_lat") is not None and doc.get("location_lon") is not None:
+            doc["_geo"] = {
+                "lat": float(doc["location_lat"]),
+                "lng": float(doc["location_lon"])
+            }
         documents.append(doc)
     
     return documents
